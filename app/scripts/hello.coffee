@@ -4,10 +4,10 @@ loadedContext = null
 
 offsetX = 250
 offsetY = 300
+
 $(document).ready ->
 
   d3.xml 'fam.csx', 'application/xml', (resp) ->
-    console.log "Allo, guvnr", resp
     loadedContext = xml2json(resp)
     schema = loadedContext.conceptualSchema
     console.log loadedContext, xml2json(resp)
@@ -18,7 +18,7 @@ $(document).ready ->
     .append('option').attr('value', (d, i) -> i)
     .text (d) -> d.keyAttributes.title
     dispatch = d3.dispatch('load', 'change')
-    dispatch.on 'load', () -> displayDiagram(0)
+    dispatch.on 'load', () -> displayDiagram(1)
     dispatch.on 'change', displayDiagram
 
     dispatch.load 0

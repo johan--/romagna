@@ -12,7 +12,6 @@
   $(document).ready(function() {
     return d3.xml('fam.csx', 'application/xml', function(resp) {
       var diagrams, dispatch, schema;
-      console.log("Allo, guvnr", resp);
       loadedContext = xml2json(resp);
       schema = loadedContext.conceptualSchema;
       console.log(loadedContext, xml2json(resp));
@@ -24,7 +23,7 @@
       });
       dispatch = d3.dispatch('load', 'change');
       dispatch.on('load', function() {
-        return displayDiagram(0);
+        return displayDiagram(1);
       });
       dispatch.on('change', displayDiagram);
       dispatch.load(0);
