@@ -254,7 +254,24 @@ module.exports = function (grunt) {
         'svgmin',
         'htmlmin'
       ]
+    },
+    rsync: {
+      options: {
+        args: ['--verbose', '--delete'],
+        recursive: true,
+        onStdout: function (data) {
+          grunt.log.write(data);
+        },
+      },
+      prod: {
+        options: {
+          src: 'dist/',
+          dest: '/usr/share/nginx/html/',
+          host: 'root@188.226.244.135'
+        }
+      }
     }
+
   });
 
   grunt.registerTask('serve', function (target) {
@@ -297,6 +314,13 @@ module.exports = function (grunt) {
     'copy',
     'rev',
     'usemin'
+  ]);
+
+  grunt.registerTask('deploy', [
+    'jshint',
+    'test',
+    'build',
+    'rsync:prod'
   ]);
 
   grunt.registerTask('default', [
