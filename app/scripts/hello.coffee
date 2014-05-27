@@ -49,7 +49,7 @@ displayDiagram = (d) ->
     .style('fill', () -> return if diagram.keyAttributes.title == "Status" then 'steelblue' else 'red' )
     .attr('cy', (d) -> +d.position.keyAttributes.y + offsetY)
     .attr('cx', (d) -> +d.position.keyAttributes.x + offsetX)
-    .attr('r',  (d) -> r(d.objectContingent.objectRef?.length || 0))
+    .attr('r',  30)
 
 
   edges = svg.selectAll('line').data(diagram.edge, (d) ->

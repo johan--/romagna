@@ -64,10 +64,7 @@
       return +d.position.keyAttributes.y + offsetY;
     }).attr('cx', function(d) {
       return +d.position.keyAttributes.x + offsetX;
-    }).attr('r', function(d) {
-      var _ref;
-      return r(((_ref = d.objectContingent.objectRef) != null ? _ref.length : void 0) || 0);
-    });
+    }).attr('r', 30);
     edges = svg.selectAll('line').data(diagram.edge, function(d) {
       return "" + diagram.keyAttributes.title + "-" + d.keyAttributes.from + "-" + d.keyAttributes.to;
     });
