@@ -10,6 +10,7 @@
 *.vi
 *.csx
 *~
+*.sql
 
 # OS folders
 .DS_Store
