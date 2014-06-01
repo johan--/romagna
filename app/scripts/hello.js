@@ -12,12 +12,9 @@
   getAttribute = function(id) {
     var attribute, context;
     context = loadedContext.conceptualSchema.context;
-    console.log(context);
     attribute = _(context.attribute).find(function(d) {
-      console.log(d);
       return d.keyAttributes.id === id;
     });
-    console.log('getting attribute', id, attribute);
     return attribute;
   };
 
@@ -60,15 +57,22 @@
   });
 
   displayDiagram = function(d) {
-    var circles, concepts, diagram, edges, r, svg;
+    var circles, concepts, diagram, diagramGroup, edges, r, svg;
     if (d == null) {
       d = d3.event.target.value;
     }
-    svg = d3.select('svg#default-diagram');
     diagram = loadedContext.conceptualSchema.diagram[+d];
-    edges = svg.selectAll('line').data(diagram.edge, function(d) {
+    console.log("NEW DIAGRAM", diagram);
+    svg = d3.select('svg#default-diagram');
+    diagramGroup = svg.selectAll('g.diagram').data([diagram], function(d) {
+      return d.keyAttributes.title;
+    });
+    diagramGroup.exit().remove();
+    diagramGroup.enter().append('g').attr('class', 'diagram');
+    edges = diagramGroup.selectAll('line').data(diagram.edge, function(d) {
       return "" + diagram.keyAttributes.title + "-" + d.keyAttributes.from + "-" + d.keyAttributes.to;
     });
+    edges.exit().remove();
     edges.enter().append('line').style('stroke', function(d) {
       if (diagram.keyAttributes.title) {
         return 'black';
@@ -78,7 +82,6 @@
     }).style('stroke-width', 2).attr('x1', function(d) {
       var from, pos;
       from = parseInt(d.keyAttributes['from'], 10) - 1;
-      console.log(from, diagram.concept);
       pos = parseInt(diagram.concept[from].position.keyAttributes.x) + offsetX;
       return pos;
     }).attr('x2', function(d) {
@@ -97,9 +100,7 @@
       pos = parseInt(diagram.concept[to].position.keyAttributes.y, 10) + offsetY;
       return pos;
     });
-    edges.exit().remove();
-    console.log(diagram);
-    concepts = svg.selectAll('g.concept').data(diagram.concept, function(d) {
+    concepts = diagramGroup.selectAll('g.concept').data(diagram.concept, function(d) {
       console.log(diagram.keyAttributes.title + d.keyAttributes.id);
       return diagram.keyAttributes.title + d.keyAttributes.id;
     });
@@ -131,26 +132,23 @@
       if (d.attributeContingent.attributeRef) {
         label = concept.append('g').attr('class', 'concept-label').attr('transform', function(d) {
           var x, y, _ref, _ref1, _ref2, _ref3;
-          x = parseInt(d.position.keyAttributes.x) + parseInt(((_ref = d.attributeContingent.labelStyle) != null ? (_ref1 = _ref.offset) != null ? _ref1.keyAttributes.x : void 0 : void 0) || 0);
+          x = parseInt(d.position.keyAttributes.x) + parseInt(((_ref = d.attributeContingent.labelStyle) != null ? (_ref1 = _ref.offset) != null ? _ref1.keyAttributes.x : void 0 : void 0) || 0) - 100 / 2;
           y = parseInt(d.position.keyAttributes.y) + parseInt(((_ref2 = d.attributeContingent.labelStyle) != null ? (_ref3 = _ref2.offset) != null ? _ref3.keyAttributes.y : void 0 : void 0) || 0) - 30 - 15;
           return "translate(" + x + ", " + y + ")";
         });
         label.append('rect').attr('width', 100).attr('height', 15).attr('fill', function(d) {
           var _ref, _ref1;
-          return (_ref = d.attributeContingent.labelStyle) != null ? (_ref1 = _ref.bgColor) != null ? _ref1["#text"] : void 0 : void 0;
+          return ((_ref = d.attributeContingent.labelStyle) != null ? (_ref1 = _ref.bgColor) != null ? _ref1["#text"] : void 0 : void 0) || "#fff";
         }).attr('stroke', "#000");
         return label.append('text').attr('fill', '#000').text(function(d) {
           var attribute;
           if (d.attributeContingent.attributeRef) {
             attribute = getAttribute(d.attributeContingent.attributeRef["#text"]);
-            console.log(d.attributeContingent.labelStyle);
             return attribute.keyAttributes.name;
           }
-        }).attr('y', 15);
+        }).attr('text-anchor', 'middle').attr('x', 50).attr('y', 12);
       }
     });
   };
-
-  console.log("'Allo from " + lang + "!");
 
 }).call(this);

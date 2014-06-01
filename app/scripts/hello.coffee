@@ -7,12 +7,9 @@ offsetY = 300
 
 getAttribute = (id) ->
   context = loadedContext.conceptualSchema.context
-  console.log context
   attribute = _(context.attribute).find((d) ->
-    console.log d
     d.keyAttributes.id == id
   )
-  console.log 'getting attribute',id, attribute
   return attribute
 
 
@@ -52,21 +49,27 @@ $(document).ready ->
 displayDiagram = (d) ->
   
   d ?= d3.event.target.value
+  diagram = loadedContext.conceptualSchema.diagram[+d]
+  console.log "NEW DIAGRAM", diagram
   svg = d3.select('svg#default-diagram')
 
-  diagram = loadedContext.conceptualSchema.diagram[+d]
+  diagramGroup = svg.selectAll('g.diagram').data([diagram], (d) -> d.keyAttributes.title)
+
+  diagramGroup.exit().remove()
+  diagramGroup.enter().append('g').attr('class', 'diagram')
+
   
   #add the edges
-  edges = svg.selectAll('line').data(diagram.edge, (d) ->
+  edges = diagramGroup.selectAll('line').data(diagram.edge, (d) ->
     return "#{diagram.keyAttributes.title}-#{d.keyAttributes.from}-#{d.keyAttributes.to}"
   )
 
+  edges.exit().remove()
   edges.enter().append('line')
     .style('stroke', (d) -> return  if diagram.keyAttributes.title then 'black' else '#333')
     .style('stroke-width', 2)
     .attr('x1', (d) ->
       from = parseInt(d.keyAttributes['from'], 10) - 1
-      console.log from, diagram.concept
       pos = parseInt(diagram.concept[from].position.keyAttributes.x) + offsetX
       return pos
     ).attr('x2', (d) ->
@@ -84,11 +87,9 @@ displayDiagram = (d) ->
     )
 
   
-  edges.exit().remove()
   
   #add the concepts!
-  console.log diagram
-  concepts = svg.selectAll('g.concept').data(diagram.concept, (d) ->
+  concepts = diagramGroup.selectAll('g.concept').data(diagram.concept, (d) ->
     console.log diagram.keyAttributes.title + d.keyAttributes.id
     diagram.keyAttributes.title + d.keyAttributes.id
   )
@@ -97,6 +98,7 @@ displayDiagram = (d) ->
   )]).range([15, 30])
 
   concepts.exit().remove()
+
   concepts.enter()
     .append('g')
     .attr('transform', (d) -> "translate(#{offsetX}, #{offsetY})")
@@ -116,7 +118,7 @@ displayDiagram = (d) ->
         .append('g')
           .attr('class', 'concept-label')
           .attr('transform', (d) ->
-            x = parseInt(d.position.keyAttributes.x) + parseInt(d.attributeContingent.labelStyle?.offset?.keyAttributes.x || 0)
+            x = parseInt(d.position.keyAttributes.x) + parseInt(d.attributeContingent.labelStyle?.offset?.keyAttributes.x || 0) - 100/2
             y = parseInt(d.position.keyAttributes.y) + parseInt(d.attributeContingent.labelStyle?.offset?.keyAttributes.y || 0) - 30 - 15
             "translate(#{x}, #{y})"
           )
@@ -124,19 +126,16 @@ displayDiagram = (d) ->
       label.append('rect')
           .attr('width', 100)
           .attr('height', 15)
-          .attr('fill', (d) -> d.attributeContingent.labelStyle?.bgColor?["#text"])
+          .attr('fill', (d) -> d.attributeContingent.labelStyle?.bgColor?["#text"] || "#fff")
           .attr('stroke', "#000")
       label.append('text') .attr('fill', '#000')
           .text((d) ->
             if (d.attributeContingent.attributeRef)
               attribute = getAttribute d.attributeContingent.attributeRef["#text"]
-              console.log d.attributeContingent.labelStyle
               attribute.keyAttributes.name
           )
-            .attr('y', 15)
+            .attr('text-anchor', 'middle')
+            .attr('x', 50)
+            .attr('y', 12)
   )
 
-
-
-
-console.log "'Allo from #{lang}!"
