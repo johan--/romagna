@@ -1,6 +1,6 @@
 class App
   constructor: () ->
-    console.log 'initialized app'
+    console.log 'initialized app, plm'
 
 
 app = new App

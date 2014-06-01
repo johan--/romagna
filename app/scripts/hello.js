@@ -1,7 +1,16 @@
 (function() {
-  var displayDiagram, getAttribute, lang, loadedContext, offsetX, offsetY;
+  var App, app, displayDiagram, getAttribute, loadedContext, offsetX, offsetY;
 
-  lang = 'coffeescript';
+  App = (function() {
+    function App() {
+      console.log('initialized app');
+    }
+
+    return App;
+
+  })();
+
+  app = new App;
 
   loadedContext = null;
 
