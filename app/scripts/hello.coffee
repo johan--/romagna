@@ -40,9 +40,8 @@ $(document).ready ->
     .append('option').attr('value', (d, i) -> i)
     .text (d) -> d.keyAttributes.title
     dispatch = d3.dispatch('load', 'change')
-    dispatch.on 'load', () -> displayDiagram(1)
+    dispatch.on 'load', () -> displayDiagram(0)
     dispatch.on 'change', displayDiagram
-
     dispatch.load 0
     d3.selectAll('#diagrams').on 'change', -> dispatch.change()
     loadedContext
@@ -56,24 +55,8 @@ displayDiagram = (d) ->
   svg = d3.select('svg#default-diagram')
 
   diagram = loadedContext.conceptualSchema.diagram[+d]
-  #add the concepts!
-  concepts = svg.selectAll('circle').data(diagram.concept, (d) ->
-    console.log diagram.keyAttributes.title + d.keyAttributes.id
-    diagram.keyAttributes.title + d.keyAttributes.id
-  )
-  r = d3.scale.linear().domain([0, d3.max(diagram.concept, (d) ->
-    d.objectContingent.objectRef?.length || 0
-  )]).range([15, 30])
-
-  concepts.exit().remove()
-  concepts.enter()
-    .append('circle')
-    .style('fill', () -> return if diagram.keyAttributes.title == "Status" then 'steelblue' else 'red' )
-    .attr('cy', (d) -> +d.position.keyAttributes.y + offsetY)
-    .attr('cx', (d) -> +d.position.keyAttributes.x + offsetX)
-    .attr('r',  30)
-
-
+  
+  #add the edges
   edges = svg.selectAll('line').data(diagram.edge, (d) ->
     return "#{diagram.keyAttributes.title}-#{d.keyAttributes.from}-#{d.keyAttributes.to}"
   )
@@ -102,6 +85,58 @@ displayDiagram = (d) ->
 
   
   edges.exit().remove()
+  
+  #add the concepts!
+  console.log diagram
+  concepts = svg.selectAll('g.concept').data(diagram.concept, (d) ->
+    console.log diagram.keyAttributes.title + d.keyAttributes.id
+    diagram.keyAttributes.title + d.keyAttributes.id
+  )
+  r = d3.scale.linear().domain([0, d3.max(diagram.concept, (d) ->
+    d.objectContingent.objectRef?.length || 0
+  )]).range([15, 30])
+
+  concepts.exit().remove()
+  concepts.enter()
+    .append('g')
+    .attr('transform', (d) -> "translate(#{offsetX}, #{offsetY})")
+    .attr('class', 'concept')
+
+  circles = concepts.append('circle')
+  circles.style('fill', () -> return if diagram.keyAttributes.title == "Status" then 'steelblue' else 'red')
+        .attr('cy', (d) -> +d.position.keyAttributes.y)
+        .attr('cx', (d) -> +d.position.keyAttributes.x)
+        .attr('r',  30)
+
+
+  concepts.each((d) ->
+    concept = d3.select(this)
+    if (d.attributeContingent.attributeRef)
+      label = concept
+        .append('g')
+          .attr('class', 'concept-label')
+          .attr('transform', (d) ->
+            x = parseInt(d.position.keyAttributes.x) + parseInt(d.attributeContingent.labelStyle?.offset?.keyAttributes.x || 0)
+            y = parseInt(d.position.keyAttributes.y) + parseInt(d.attributeContingent.labelStyle?.offset?.keyAttributes.y || 0) - 30 - 15
+            "translate(#{x}, #{y})"
+          )
+          
+      label.append('rect')
+          .attr('width', 100)
+          .attr('height', 15)
+          .attr('fill', (d) -> d.attributeContingent.labelStyle?.bgColor?["#text"])
+          .attr('stroke', "#000")
+      label.append('text') .attr('fill', '#000')
+          .text((d) ->
+            if (d.attributeContingent.attributeRef)
+              attribute = getAttribute d.attributeContingent.attributeRef["#text"]
+              console.log d.attributeContingent.labelStyle
+              attribute.keyAttributes.name
+          )
+            .attr('y', 15)
+  )
+
+
 
 
 console.log "'Allo from #{lang}!"

@@ -46,7 +46,7 @@
       });
       dispatch = d3.dispatch('load', 'change');
       dispatch.on('load', function() {
-        return displayDiagram(1);
+        return displayDiagram(0);
       });
       dispatch.on('change', displayDiagram);
       dispatch.load(0);
@@ -60,34 +60,12 @@
   });
 
   displayDiagram = function(d) {
-    var concepts, diagram, edges, r, svg;
+    var circles, concepts, diagram, edges, r, svg;
     if (d == null) {
       d = d3.event.target.value;
     }
     svg = d3.select('svg#default-diagram');
     diagram = loadedContext.conceptualSchema.diagram[+d];
-    concepts = svg.selectAll('circle').data(diagram.concept, function(d) {
-      console.log(diagram.keyAttributes.title + d.keyAttributes.id);
-      return diagram.keyAttributes.title + d.keyAttributes.id;
-    });
-    r = d3.scale.linear().domain([
-      0, d3.max(diagram.concept, function(d) {
-        var _ref;
-        return ((_ref = d.objectContingent.objectRef) != null ? _ref.length : void 0) || 0;
-      })
-    ]).range([15, 30]);
-    concepts.exit().remove();
-    concepts.enter().append('circle').style('fill', function() {
-      if (diagram.keyAttributes.title === "Status") {
-        return 'steelblue';
-      } else {
-        return 'red';
-      }
-    }).attr('cy', function(d) {
-      return +d.position.keyAttributes.y + offsetY;
-    }).attr('cx', function(d) {
-      return +d.position.keyAttributes.x + offsetX;
-    }).attr('r', 30);
     edges = svg.selectAll('line').data(diagram.edge, function(d) {
       return "" + diagram.keyAttributes.title + "-" + d.keyAttributes.from + "-" + d.keyAttributes.to;
     });
@@ -119,7 +97,58 @@
       pos = parseInt(diagram.concept[to].position.keyAttributes.y, 10) + offsetY;
       return pos;
     });
-    return edges.exit().remove();
+    edges.exit().remove();
+    console.log(diagram);
+    concepts = svg.selectAll('g.concept').data(diagram.concept, function(d) {
+      console.log(diagram.keyAttributes.title + d.keyAttributes.id);
+      return diagram.keyAttributes.title + d.keyAttributes.id;
+    });
+    r = d3.scale.linear().domain([
+      0, d3.max(diagram.concept, function(d) {
+        var _ref;
+        return ((_ref = d.objectContingent.objectRef) != null ? _ref.length : void 0) || 0;
+      })
+    ]).range([15, 30]);
+    concepts.exit().remove();
+    concepts.enter().append('g').attr('transform', function(d) {
+      return "translate(" + offsetX + ", " + offsetY + ")";
+    }).attr('class', 'concept');
+    circles = concepts.append('circle');
+    circles.style('fill', function() {
+      if (diagram.keyAttributes.title === "Status") {
+        return 'steelblue';
+      } else {
+        return 'red';
+      }
+    }).attr('cy', function(d) {
+      return +d.position.keyAttributes.y;
+    }).attr('cx', function(d) {
+      return +d.position.keyAttributes.x;
+    }).attr('r', 30);
+    return concepts.each(function(d) {
+      var concept, label;
+      concept = d3.select(this);
+      if (d.attributeContingent.attributeRef) {
+        label = concept.append('g').attr('class', 'concept-label').attr('transform', function(d) {
+          var x, y, _ref, _ref1, _ref2, _ref3;
+          x = parseInt(d.position.keyAttributes.x) + parseInt(((_ref = d.attributeContingent.labelStyle) != null ? (_ref1 = _ref.offset) != null ? _ref1.keyAttributes.x : void 0 : void 0) || 0);
+          y = parseInt(d.position.keyAttributes.y) + parseInt(((_ref2 = d.attributeContingent.labelStyle) != null ? (_ref3 = _ref2.offset) != null ? _ref3.keyAttributes.y : void 0 : void 0) || 0) - 30 - 15;
+          return "translate(" + x + ", " + y + ")";
+        });
+        label.append('rect').attr('width', 100).attr('height', 15).attr('fill', function(d) {
+          var _ref, _ref1;
+          return (_ref = d.attributeContingent.labelStyle) != null ? (_ref1 = _ref.bgColor) != null ? _ref1["#text"] : void 0 : void 0;
+        }).attr('stroke', "#000");
+        return label.append('text').attr('fill', '#000').text(function(d) {
+          var attribute;
+          if (d.attributeContingent.attributeRef) {
+            attribute = getAttribute(d.attributeContingent.attributeRef["#text"]);
+            console.log(d.attributeContingent.labelStyle);
+            return attribute.keyAttributes.name;
+          }
+        }).attr('y', 15);
+      }
+    });
   };
 
   console.log("'Allo from " + lang + "!");
