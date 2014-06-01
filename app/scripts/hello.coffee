@@ -5,7 +5,29 @@ loadedContext = null
 offsetX = 250
 offsetY = 300
 
+getAttribute = (id) ->
+  context = loadedContext.conceptualSchema.context
+  console.log context
+  attribute = _(context.attribute).find((d) ->
+    console.log d
+    d.keyAttributes.id == id
+  )
+  console.log 'getting attribute',id, attribute
+  return attribute
+
+
 $(document).ready ->
+
+  $('#csx-file').change((e) ->
+    reader = new FileReader()
+    reader.readAsText(e.target.files[0])
+    reader.onload = ((e) -> console.log e.target.result)
+
+
+  )
+  $('#sql-file').change((e) ->
+    console.log 'added sql file'
+  )
 
   d3.xml 'fam.csx', 'application/xml', (resp) ->
     loadedContext = xml2json(resp)

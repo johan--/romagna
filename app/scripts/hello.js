@@ -1,5 +1,5 @@
 (function() {
-  var displayDiagram, lang, loadedContext, offsetX, offsetY;
+  var displayDiagram, getAttribute, lang, loadedContext, offsetX, offsetY;
 
   lang = 'coffeescript';
 
@@ -9,7 +9,30 @@
 
   offsetY = 300;
 
+  getAttribute = function(id) {
+    var attribute, context;
+    context = loadedContext.conceptualSchema.context;
+    console.log(context);
+    attribute = _(context.attribute).find(function(d) {
+      console.log(d);
+      return d.keyAttributes.id === id;
+    });
+    console.log('getting attribute', id, attribute);
+    return attribute;
+  };
+
   $(document).ready(function() {
+    $('#csx-file').change(function(e) {
+      var reader;
+      reader = new FileReader();
+      reader.readAsText(e.target.files[0]);
+      return reader.onload = (function(e) {
+        return console.log(e.target.result);
+      });
+    });
+    $('#sql-file').change(function(e) {
+      return console.log('added sql file');
+    });
     return d3.xml('fam.csx', 'application/xml', function(resp) {
       var diagrams, dispatch, schema;
       loadedContext = xml2json(resp);
