@@ -11,7 +11,7 @@
 
 var JXON = new (function () {
 
-  var sValProp = "keyValue", sAttrProp = "keyAttributes", sAttrsPref = "@", /* you can customize these values */
+  var sValProp = "keyValue", sAttrProp = "props", sAttrsPref = "@", /* you can customize these values */
     aCache = [], rIsNull = /^\s*$/, rIsBool = /^(?:true|false)$/i;
 
   function parseText (sValue) {
@@ -160,10 +160,10 @@ function xml2json(xml) {
 	if (xml.nodeType == 1) { // element
 		// do attributes
 		if (xml.attributes.length > 0) {
-		obj["keyAttributes"] = {};
+		obj["props"] = {};
 			for (var j = 0; j < xml.attributes.length; j++) {
 				var attribute = xml.attributes.item(j);
-				obj["keyAttributes"][attribute.nodeName] = attribute.nodeValue;
+				obj["props"][attribute.nodeName] = attribute.nodeValue;
 			}
 		}
 	} else if (xml.nodeType == 3) { // text
