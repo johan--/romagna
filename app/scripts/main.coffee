@@ -118,7 +118,7 @@ displayDiagram = (d) ->
 
   concepts.each((d) ->
     concept = d3.select(this)
-    if (d.attributeContingent.attributeRef)
+    if (d.hasAttributes())
       label = concept
         .append('g')
           .attr('class', 'concept-label')
@@ -138,6 +138,9 @@ displayDiagram = (d) ->
             if (d.attributeContingent.attributeRef)
               attribute = app.schema.getAttribute d.attributeContingent.attributeRef["#text"]
               attribute.props.name
+            else if(d.attributeContingent.attribute)
+              d.attributeContingent.attribute["#text"]
+
           )
             .attr('text-anchor', 'middle')
             .attr('x', 50)
