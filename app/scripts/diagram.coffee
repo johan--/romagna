@@ -1,7 +1,7 @@
 class @Diagram
   constructor: (diagram, schema = {}) ->
     @title = diagram.props.title
-    @concepts = diagram.concept
+    @concepts = _.map(diagram.concept, (c) -> new Concept(c))
     @edges = diagram.edge
     @schema = schema
   display: () ->
@@ -20,7 +20,7 @@ class @TJ10Diagram extends Diagram
     @concepts = _.map(diagram.node, (n) ->
       n.objectContingent = n.concept.objectContingent
       n.attributeContingent = n.concept.attributeContingent
-      return n
+      return new Concept(n)
     )
     @edges = diagram.edge
     @schema = schema
