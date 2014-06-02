@@ -1,6 +1,9 @@
 class App
+  schemas:
+    'TJ0.4': ConceptualSchemaTJ04
+    'TJ1.0': ConceptualSchemaTJ10
   constructor: () ->
-    console.log 'initialized app, plm'
+    console.log 'initialized app'
 
 
 app = new App
@@ -9,14 +12,6 @@ loadedContext = null
 offsetX = 250
 offsetY = 300
 
-getAttribute = (id) ->
-  context = loadedContext.conceptualSchema.context
-  attribute = _(context.attribute).find((d) ->
-    d.keyAttributes.id == id
-  )
-  return attribute
-
-
 $(document).ready ->
 
   $('#csx-file').change((e) ->
@@ -24,22 +19,22 @@ $(document).ready ->
     reader.readAsText(e.target.files[0])
     reader.onload = ((e) -> console.log e.target.result)
 
-
   )
   $('#sql-file').change((e) ->
     console.log 'added sql file'
   )
 
-  d3.xml 'fam.csx', 'application/xml', (resp) ->
+  d3.xml 'pctest.csx', 'application/xml', (resp) ->
     loadedContext = xml2json(resp)
-    schema = loadedContext.conceptualSchema
-    console.log loadedContext, xml2json(resp)
+    schemaVersion = loadedContext.conceptualSchema.props.version
+    app.schema = new app.schemas[schemaVersion](loadedContext.conceptualSchema)
+    console.log "NEW CONTEXT", loadedContext, xml2json(resp)
     diagrams = d3.selectAll('#diagrams').selectAll('option')
 
-    diagrams.data(schema.diagram)
+    diagrams.data(app.schema.diagrams)
     .enter()
-    .append('option').attr('value', (d, i) -> i)
-    .text (d) -> d.keyAttributes.title
+      .append('option').attr('value', (d, i) -> i)
+      .text (d) -> d.title
     dispatch = d3.dispatch('load', 'change')
     dispatch.on 'load', () -> displayDiagram(0)
     dispatch.on 'change', displayDiagram
@@ -53,51 +48,54 @@ $(document).ready ->
 displayDiagram = (d) ->
   
   d ?= d3.event.target.value
-  diagram = loadedContext.conceptualSchema.diagram[+d]
+  console.log app.schema
+
+  diagram = app.schema.diagrams[+d]
   console.log "NEW DIAGRAM", diagram
   svg = d3.select('svg#default-diagram')
 
-  diagramGroup = svg.selectAll('g.diagram').data([diagram], (d) -> d.keyAttributes.title)
+  diagramGroup = svg.selectAll('g.diagram').data([diagram], (d) -> d.title)
 
   diagramGroup.exit().remove()
   diagramGroup.enter().append('g').attr('class', 'diagram')
 
   
   #add the edges
-  edges = diagramGroup.selectAll('line').data(diagram.edge, (d) ->
-    return "#{diagram.keyAttributes.title}-#{d.keyAttributes.from}-#{d.keyAttributes.to}"
+  edges = diagramGroup.selectAll('line').data(diagram.edges, (d) ->
+    return "#{diagram.title}-#{d.props.from}-#{d.props.to}"
   )
 
   edges.exit().remove()
   edges.enter().append('line')
-    .style('stroke', (d) -> return  if diagram.keyAttributes.title then 'black' else '#333')
+    .style('stroke', (d) -> return  if diagram.title then 'black' else '#333')
     .style('stroke-width', 2)
     .attr('x1', (d) ->
-      from = parseInt(d.keyAttributes['from'], 10) - 1
-      pos = parseInt(diagram.concept[from].position.keyAttributes.x) + offsetX
+      from = parseInt(d.props['from'], 10) - 1
+      pos = parseInt(diagram.concepts[from].position.props.x) + offsetX
       return pos
     ).attr('x2', (d) ->
-      to = parseInt(d.keyAttributes['to']) - 1
-      pos = parseInt(diagram.concept[to].position.keyAttributes.x) + offsetX
+      to = parseInt(d.props['to']) - 1
+      pos = parseInt(diagram.concepts[to].position.props.x) + offsetX
       return pos
     ).attr('y1', (d) ->
-      from = parseInt(d.keyAttributes['from'], 10) - 1
-      pos = parseInt(diagram.concept[from].position.keyAttributes.y) + offsetY
+      from = parseInt(d.props['from'], 10) - 1
+      pos = parseInt(diagram.concepts[from].position.props.y) + offsetY
       return pos
     ).attr('y2', (d) ->
-      to = parseInt(d.keyAttributes['to'], 10) - 1
-      pos = parseInt(diagram.concept[to].position.keyAttributes.y, 10) + offsetY
+      to = parseInt(d.props['to'], 10) - 1
+      pos = parseInt(diagram.concepts[to].position.props.y, 10) + offsetY
       return pos
     )
 
   
   
   #add the concepts!
-  concepts = diagramGroup.selectAll('g.concept').data(diagram.concept, (d) ->
-    console.log diagram.keyAttributes.title + d.keyAttributes.id
-    diagram.keyAttributes.title + d.keyAttributes.id
+  concepts = diagramGroup.selectAll('g.concept').data(diagram.concepts, (d) ->
+    console.log diagram.title + d.props.id
+    diagram.title + d.props.id
   )
-  r = d3.scale.linear().domain([0, d3.max(diagram.concept, (d) ->
+  r = d3.scale.linear().domain([0, d3.max(diagram.concepts, (d) ->
+    console.log d
     d.objectContingent.objectRef?.length || 0
   )]).range([15, 30])
 
@@ -109,10 +107,13 @@ displayDiagram = (d) ->
     .attr('class', 'concept')
 
   circles = concepts.append('circle')
-  circles.style('fill', () -> return if diagram.keyAttributes.title == "Status" then 'steelblue' else 'red')
-        .attr('cy', (d) -> +d.position.keyAttributes.y)
-        .attr('cx', (d) -> +d.position.keyAttributes.x)
-        .attr('r',  30)
+  circles.style('fill', () -> return if diagram.title == "Status" then 'steelblue' else 'red')
+        .attr('cy', (d) -> +d.position.props.y)
+        .attr('cx', (d) -> +d.position.props.x)
+        .attr('r',  (d) ->
+          console.log d
+          if d.objectContingent.object?.length then 10 else 3
+        )
 
 
   concepts.each((d) ->
@@ -122,8 +123,8 @@ displayDiagram = (d) ->
         .append('g')
           .attr('class', 'concept-label')
           .attr('transform', (d) ->
-            x = parseInt(d.position.keyAttributes.x) + parseInt(d.attributeContingent.labelStyle?.offset?.keyAttributes.x || 0) - 100/2
-            y = parseInt(d.position.keyAttributes.y) + parseInt(d.attributeContingent.labelStyle?.offset?.keyAttributes.y || 0) - 30 - 15
+            x = parseInt(d.position.props.x) + parseInt(d.attributeContingent.labelStyle?.offset?.props.x || 0) - 100/2
+            y = parseInt(d.position.props.y) + parseInt(d.attributeContingent.labelStyle?.offset?.props.y || 0) - 30 - 15
             "translate(#{x}, #{y})"
           )
           
@@ -135,8 +136,8 @@ displayDiagram = (d) ->
       label.append('text') .attr('fill', '#000')
           .text((d) ->
             if (d.attributeContingent.attributeRef)
-              attribute = getAttribute d.attributeContingent.attributeRef["#text"]
-              attribute.keyAttributes.name
+              attribute = app.schema.getAttribute d.attributeContingent.attributeRef["#text"]
+              attribute.props.name
           )
             .attr('text-anchor', 'middle')
             .attr('x', 50)
