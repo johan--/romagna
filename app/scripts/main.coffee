@@ -9,8 +9,8 @@ class App
 app = new App
 loadedContext = null
 
-offsetX = 250
-offsetY = 300
+offsetX = 120
+offsetY = 50
 
 $(document).ready ->
 
@@ -44,7 +44,6 @@ $(document).ready ->
 
   , (err) ->
     console "ups, gvnr"
-
 displayDiagram = (d) ->
   
   d ?= d3.event.target.value
@@ -59,7 +58,13 @@ displayDiagram = (d) ->
   diagramGroup.exit().remove()
   diagramGroup.enter().append('g').attr('class', 'diagram')
 
-  
+  $('svg').attr('viewBox', () ->
+    console.log this
+    #boundingClientBox = @getBoundingClientBox()
+    boundingClientBox = {width:500, height:300}
+    console.log boundingClientBox
+    "0 0 #{boundingClientBox.width} #{boundingClientBox.height}"
+  )
   #add the edges
   edges = diagramGroup.selectAll('line').data(diagram.edges, (d) ->
     return "#{diagram.title}-#{d.props.from}-#{d.props.to}"
@@ -91,11 +96,10 @@ displayDiagram = (d) ->
   
   #add the concepts!
   concepts = diagramGroup.selectAll('g.concept').data(diagram.concepts, (d) ->
-    console.log diagram.title + d.props.id
+    #console.log diagram.title + d.props.id
     diagram.title + d.props.id
   )
   r = d3.scale.linear().domain([0, d3.max(diagram.concepts, (d) ->
-    console.log d
     d.objectContingent.objectRef?.length || 0
   )]).range([15, 30])
 
@@ -111,7 +115,7 @@ displayDiagram = (d) ->
         .attr('cy', (d) -> +d.position.props.y)
         .attr('cx', (d) -> +d.position.props.x)
         .attr('r',  (d) ->
-          console.log d
+          #console.log d
           if d.objectContingent.object?.length then 10 else 3
         )
 
