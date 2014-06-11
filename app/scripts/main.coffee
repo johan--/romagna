@@ -9,8 +9,6 @@ class App
 app = new App
 loadedContext = null
 
-offsetX = 120
-offsetY = 50
 
 $(document).ready ->
 
@@ -76,19 +74,19 @@ displayDiagram = (d) ->
     .style('stroke-width', 2)
     .attr('x1', (d) ->
       from = parseInt(d.props['from'], 10) - 1
-      pos = parseInt(diagram.concepts[from].position.props.x) + offsetX
+      pos = parseInt(diagram.concepts[from].position.props.x)
       return pos
     ).attr('x2', (d) ->
       to = parseInt(d.props['to']) - 1
-      pos = parseInt(diagram.concepts[to].position.props.x) + offsetX
+      pos = parseInt(diagram.concepts[to].position.props.x)
       return pos
     ).attr('y1', (d) ->
       from = parseInt(d.props['from'], 10) - 1
-      pos = parseInt(diagram.concepts[from].position.props.y) + offsetY
+      pos = parseInt(diagram.concepts[from].position.props.y)
       return pos
     ).attr('y2', (d) ->
       to = parseInt(d.props['to'], 10) - 1
-      pos = parseInt(diagram.concepts[to].position.props.y, 10) + offsetY
+      pos = parseInt(diagram.concepts[to].position.props.y, 10)
       return pos
     )
 
@@ -107,7 +105,6 @@ displayDiagram = (d) ->
 
   concepts.enter()
     .append('g')
-    .attr('transform', (d) -> "translate(#{offsetX}, #{offsetY})")
     .attr('class', 'concept')
 
   circles = concepts.append('circle')
@@ -121,6 +118,7 @@ displayDiagram = (d) ->
 
 
   concepts.each((d) ->
+    
     concept = d3.select(this)
     if (d.hasAttributes())
       label = concept

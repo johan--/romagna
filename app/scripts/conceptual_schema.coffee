@@ -17,7 +17,6 @@ class @ConceptualSchemaTJ10 extends ConceptualSchema
 
   extractAttributes: () ->
     attributes = []
-
     _.each(@diagrams, (diagram) ->
       _.each(diagram.node, (n) ->
         attr = _.map(n.attributeContingent.attribute, (o) -> o["#text"])
