@@ -56,13 +56,6 @@ displayDiagram = (d) ->
   diagramGroup.exit().remove()
   diagramGroup.enter().append('g').attr('class', 'diagram')
 
-  $('svg').attr('viewBox', () ->
-    console.log this
-    #boundingClientBox = @getBoundingClientBox()
-    boundingClientBox = {width:500, height:300}
-    console.log boundingClientBox
-    "0 0 #{boundingClientBox.width} #{boundingClientBox.height}"
-  )
   #add the edges
   edges = diagramGroup.selectAll('line').data(diagram.edges, (d) ->
     return "#{diagram.title}-#{d.props.from}-#{d.props.to}"
@@ -147,5 +140,16 @@ displayDiagram = (d) ->
             .attr('text-anchor', 'middle')
             .attr('x', 50)
             .attr('y', 12)
+  )
+
+  $('svg').attr('width', $('svg').parent().width())
+  $('svg').attr('height', $('svg').parent().height())
+  svg.attr('viewBox', () ->
+    console.log this
+    minY = diagram.extent.y[0] - 10
+    boundingClientRect = @getBBox()
+    console.log "EXTENT IS: #{diagram.extent.x[0]} #{diagram.extent.y[0]}"
+    console.log "#{boundingClientRect.width}, #{boundingClientRect.height}"
+    "#{diagram.extent.x[0]} #{minY} #{boundingClientRect.width} #{boundingClientRect.height}"
   )
 
