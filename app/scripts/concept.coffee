@@ -8,6 +8,12 @@ class @Concept
     true if @objectContingent.objectRef or
             @objectContingent.object
 
+  objectCount: () ->
+    switch
+      when @objectContingent.objectRef?.length then @objectContingent.objectRef.length
+      when @objectContingent.objectRef?["#text"] then 1
+      when @objectContingent.object?.length then @objectContingent.object.length
+      when @objectContingent.object?["#text"] then 1
   getAttributes: () ->
     if @attributeContingent.attributeRef
       attribute = new Attribute(_.find(@schema.context.attribute, (d) =>
