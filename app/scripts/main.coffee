@@ -9,37 +9,43 @@ class App
 app = new App
 loadedContext = null
 
+@loadContext = (csx) ->
+  loadedContext = xml2json(csx)
+  schemaVersion = loadedContext.conceptualSchema.props.version
+  app.schema = new app.schemas[schemaVersion](loadedContext.conceptualSchema)
+  console.log "NEW CONTEXT", loadedContext, xml2json(csx)
+  diagrams = d3.selectAll('#diagrams').selectAll('option').data(app.schema.diagrams)
+
+  diagrams.enter()
+    .append('option').attr('value', (d, i) -> i)
+    .text (d) -> d.title
+  diagrams.exit().remove()
+  dispatch = d3.dispatch('load', 'change')
+  dispatch.on 'load', () -> displayDiagram(0)
+  dispatch.on 'change', displayDiagram
+  dispatch.load 0
+  d3.selectAll('#diagrams').on 'change', -> dispatch.change()
+  loadedContext
 
 $(document).ready ->
 
   $('#csx-file').change((e) ->
     reader = new FileReader()
     reader.readAsText(e.target.files[0])
-    reader.onload = ((e) -> console.log e.target.result)
+    reader.onload = ((e) ->
+      parser = new DOMParser()
+      dom = parser.parseFromString(e.target.result, "text/xml")
+      window.plm = e.target.result
+      loadContext dom
+    )
 
   )
   $('#sql-file').change((e) ->
     console.log 'added sql file'
   )
 
-  d3.xml 'pctest.csx', 'application/xml', (resp) ->
-    loadedContext = xml2json(resp)
-    schemaVersion = loadedContext.conceptualSchema.props.version
-    app.schema = new app.schemas[schemaVersion](loadedContext.conceptualSchema)
-    console.log "NEW CONTEXT", loadedContext, xml2json(resp)
-    diagrams = d3.selectAll('#diagrams').selectAll('option')
 
-    diagrams.data(app.schema.diagrams)
-    .enter()
-      .append('option').attr('value', (d, i) -> i)
-      .text (d) -> d.title
-    dispatch = d3.dispatch('load', 'change')
-    dispatch.on 'load', () -> displayDiagram(0)
-    dispatch.on 'change', displayDiagram
-    dispatch.load 0
-    d3.selectAll('#diagrams').on 'change', -> dispatch.change()
-    loadedContext
-
+  d3.xml 'pctest.csx', 'application/xml', loadContext
   , (err) ->
     console "ups, gvnr"
 displayDiagram = (d) ->
