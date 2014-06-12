@@ -119,23 +119,26 @@ displayDiagram = (d) ->
           .attr('class', 'concept-label')
           .attr('transform', (d) ->
             x = parseInt(d.position.props.x) + parseInt(d.attributeContingent.labelStyle?.offset?.props.x || 0) - 100/2
-            y = parseInt(d.position.props.y) + parseInt(d.attributeContingent.labelStyle?.offset?.props.y || 0) - 30 - 15
+            y = parseInt(d.position.props.y) + parseInt(d.attributeContingent.labelStyle?.offset?.props.y || 0) - 12 - 15
             "translate(#{x}, #{y})"
           )
           
       label.append('rect')
           .attr('width', 100)
-          .attr('height', 15)
+          .attr('height', (d) ->
+            attrs = d.attributeContingent.attributeRef or d.attributeContingent.attribute
+            num = if Array.isArray attrs then attrs.length else 1
+            return 15 * num
+          )
           .attr('fill', (d) -> d.attributeContingent.labelStyle?.bgColor?["#text"] || "#fff")
           .attr('stroke', "#000")
       label.append('text') .attr('fill', '#000')
           .text((d) ->
-            if (d.attributeContingent.attributeRef)
-              attribute = app.schema.getAttribute d.attributeContingent.attributeRef["#text"]
-              attribute.props.name
-            else if(d.attributeContingent.attribute)
-              d.attributeContingent.attribute["#text"]
-
+            attrs = d.getAttributes()
+            unless Array.isArray attrs
+              attrs["#text"]
+            else
+              _.pluck(attrs, "#text")
           )
             .attr('text-anchor', 'middle')
             .attr('x', 50)
@@ -145,11 +148,13 @@ displayDiagram = (d) ->
   $('svg').attr('width', $('svg').parent().width())
   $('svg').attr('height', $('svg').parent().height())
   svg.attr('viewBox', () ->
-    console.log this
-    minY = diagram.extent.y[0] - 10
     boundingClientRect = @getBBox()
+    minY = diagram.extent.y[0] - 50
+    minX = diagram.extent.x[0] - 50
+    window.positions = _.map diagram.concepts, (c) -> c.position.props
+    console.log diagram.extent , positions
+    maxY = boundingClientRect.height + 50
     console.log "EXTENT IS: #{diagram.extent.x[0]} #{diagram.extent.y[0]}"
-    console.log "#{boundingClientRect.width}, #{boundingClientRect.height}"
-    "#{diagram.extent.x[0]} #{minY} #{boundingClientRect.width} #{boundingClientRect.height}"
+    "#{minX} #{minY} #{boundingClientRect.width} #{maxY}"
   )
 
