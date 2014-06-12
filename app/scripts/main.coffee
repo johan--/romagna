@@ -137,9 +137,9 @@ displayDiagram = (d) ->
           .text((d) ->
             attrs = d.getAttributes()
             unless Array.isArray attrs
-              attrs["#text"]
+              attrs.name
             else
-              _.pluck(attrs, "#text")
+              _.pluck(attrs, 'name')
           )
             .attr('text-anchor', 'middle')
             .attr('x', 50)
