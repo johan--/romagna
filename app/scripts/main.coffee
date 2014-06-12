@@ -151,7 +151,7 @@ displayDiagram = (d) ->
             .attr('text-anchor', 'middle')
             .attr('x', 50)
             .attr('y', 12)
-      if d.objectContingent.object?.length
+      if d.hasObjects()
         objLabel = concept
           .append('g')
             .attr('class', 'concept-object-label')
@@ -163,10 +163,10 @@ displayDiagram = (d) ->
         objLabel.append('rect')
                 .attr('width', 20)
                 .attr('height', 15)
-                .attr('fill', (d) -> d.objectContingent.labelStyle?.bgColor["#text"] || '#fff')
+                .attr('fill', (d) -> d.objectContingent.labelStyle?.bgColor?["#text"] || '#fff')
                 .attr('stroke', "#000")
         objLabel.append('text').attr('fill', "#000")
-          .text((d) -> d.objectContingent.object?.length || 0)
+          .text((d) -> d.objectCount() || 0)
             .attr('text-anchor', 'middle')
             .attr('x', 10)
             .attr('y', 12)
