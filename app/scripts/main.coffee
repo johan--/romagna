@@ -14,7 +14,9 @@ loadedContext = null
   schemaVersion = loadedContext.conceptualSchema.props.version
   app.schema = new app.schemas[schemaVersion](loadedContext.conceptualSchema)
   console.log "NEW CONTEXT", loadedContext, xml2json(csx)
-  diagrams = d3.selectAll('#diagrams').selectAll('option').data(app.schema.diagrams)
+  diagrams = d3.selectAll('#diagrams')
+                .selectAll('option')
+                  .data(app.schema.diagrams, (d) -> d.title)
 
   diagrams.enter()
     .append('option').attr('value', (d, i) -> i)
