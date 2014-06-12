@@ -114,16 +114,16 @@ displayDiagram = (d) ->
     
     concept = d3.select(this)
     if (d.hasAttributes())
-      label = concept
+      attrLabel = concept
         .append('g')
-          .attr('class', 'concept-label')
+          .attr('class', 'concept-attribute-label')
           .attr('transform', (d) ->
             x = parseInt(d.position.props.x) + parseInt(d.attributeContingent.labelStyle?.offset?.props.x || 0) - 100/2
             y = parseInt(d.position.props.y) + parseInt(d.attributeContingent.labelStyle?.offset?.props.y || 0) - 12 - 15
             "translate(#{x}, #{y})"
           )
           
-      label.append('rect')
+      attrLabel.append('rect')
           .attr('width', 100)
           .attr('height', (d) ->
             attrs = d.attributeContingent.attributeRef or d.attributeContingent.attribute
@@ -132,7 +132,7 @@ displayDiagram = (d) ->
           )
           .attr('fill', (d) -> d.attributeContingent.labelStyle?.bgColor?["#text"] || "#fff")
           .attr('stroke', "#000")
-      label.append('text') .attr('fill', '#000')
+      attrLabel.append('text') .attr('fill', '#000')
           .text((d) ->
             attrs = d.getAttributes()
             unless Array.isArray attrs
@@ -142,6 +142,25 @@ displayDiagram = (d) ->
           )
             .attr('text-anchor', 'middle')
             .attr('x', 50)
+            .attr('y', 12)
+      if d.objectContingent.object?.length
+        objLabel = concept
+          .append('g')
+            .attr('class', 'concept-object-label')
+            .attr('transform', (d) ->
+              x = parseInt(d.position.props.x) + parseInt(d.objectContingent.labelStyle?.offset?.props.x || 0) - 20/2
+              y = parseInt(d.position.props.y) + parseInt(d.objectContingent.labelStyle?.offset?.props.y || 0) + 12 + 15
+              "translate(#{x}, #{y})"
+            )
+        objLabel.append('rect')
+                .attr('width', 20)
+                .attr('height', 15)
+                .attr('fill', (d) -> d.objectContingent.labelStyle?.bgColor["#text"] || '#fff')
+                .attr('stroke', "#000")
+        objLabel.append('text').attr('fill', "#000")
+          .text((d) -> d.objectContingent.object?.length || 0)
+            .attr('text-anchor', 'middle')
+            .attr('x', 10)
             .attr('y', 12)
   )
 
