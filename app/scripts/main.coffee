@@ -106,8 +106,7 @@ displayDiagram = (d) ->
         .attr('cy', (d) -> +d.position.props.y)
         .attr('cx', (d) -> +d.position.props.x)
         .attr('r',  (d) ->
-          #console.log d
-          if d.objectContingent.object?.length then 10 else 3
+          if d.hasObjects() then 10 else 3
         )
 
 
