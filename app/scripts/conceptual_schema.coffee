@@ -39,8 +39,8 @@ class @ConceptualSchemaTJ10 extends ConceptualSchema
 class @ConceptualSchemaTJ04 extends ConceptualSchema
   constructor: (schema) ->
     @context = schema.context
-    @attributes = @context.attributes
-    @objects = @context.objects
+    @attributes = @context.attribute
+    @objects = @context.object
     @diagrams = _.map(schema.diagram, (d) => new TJ04Diagram(d, this))
   
 
