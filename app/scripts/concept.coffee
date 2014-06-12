@@ -6,9 +6,13 @@ class @Concept
     true if @attributeContingent.attributeRef or @attributeContingent.attribute
   getAttributes: () ->
     if @attributeContingent.attributeRef
-      attribute = _.find(@schema.context.attribute, (d) =>
+      attribute = new Attribute(_.find(@schema.context.attribute, (d) =>
         d.props.id == @attributeContingent.attributeRef["#text"]
-      )
+      ))
     else
-      attribute = @attributeContingent.attribute
+      attribute = _.map(@attributeContingent.attribute, (a) -> new Attribute(a))
     return attribute
+
+
+class @TJ04Concept extends Concept
+class @TJ10Concept extends Concept
