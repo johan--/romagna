@@ -102,6 +102,7 @@ displayDiagram = (d) ->
 
   circles = concepts.append('circle')
   circles.style('fill', () -> return if diagram.title == "Status" then 'steelblue' else 'red')
+        .attr('stroke', "#000")
         .attr('cy', (d) -> +d.position.props.y)
         .attr('cx', (d) -> +d.position.props.x)
         .attr('r',  (d) ->
