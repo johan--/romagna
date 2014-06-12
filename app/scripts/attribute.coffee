@@ -1,7 +1,8 @@
 class @Attribute
   constructor: (options) ->
-    if typeof options is 'string'
-      @name = options
-    else
-      @name = options.props?.name
-      @id = options.props?.id
+    switch
+      when typeof options is 'string' then @name = options
+      when options["#text"] then @name = options["#text"]
+      else
+        @name = options.props?.name
+        @id = options.props?.id
