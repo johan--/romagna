@@ -1,8 +1,8 @@
 class @Diagram
 
-  constructor: (diagram, @schema = {}) ->
+  constructor: (diagram) ->
     @title = diagram.props.title
-    console.log "NEW DIAGRAM CONSTRUCTOR for #{@title}"
+    #console.log "NEW DIAGRAM CONSTRUCTOR for #{@title}"
     @edges = diagram.edge
     @computeExtent()
 
@@ -12,28 +12,8 @@ class @Diagram
     @drawLabels()
 
   computeExtent: () ->
-    @extent = {}
-    positions = _.map @concepts, (c) -> c.position.props
-    @extent.x = d3.extent(_.map(positions,((p) -> parseFloat(p.x, 10))))
-    @extent.y = d3.extent(_.map(positions,((p) -> parseFloat(p.y, 10))))
+    @extent ?= {}
+    positions = _.map @concepts, (c) -> c.visual.position
+    @extent.x = d3.extent(_.pluck(positions, 'x'))
+    @extent.y = d3.extent(_.pluck(positions, 'y'))
 
-class @TJ04Diagram extends Diagram
-  constructor: (diagram, @schema = {}) ->
-    console.log "NEW TJ 0.4 DIAGRAM CONSTRUCTOR"
-    @concepts = _.map(diagram.concept, (c) => new TJ04Concept(c, @schema)
-    )
-    super
-
-  drawEdges: () ->
-  drawConcepts: () ->
-
-
-class @TJ10Diagram extends Diagram
-  constructor: (diagram, @schema = {}) ->
-    console.log "NEW TJ 1.0 DIAGRAM CONSTRUCTOR"
-    @concepts = _.map(diagram.node, (n) ->
-      n.objectContingent = n.concept.objectContingent
-      n.attributeContingent = n.concept.attributeContingent
-      return new TJ10Concept(n, @schema)
-    )
-    super

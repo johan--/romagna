@@ -5971,6 +5971,9 @@ body {
   width: 100%;
   height: 100%;
 }
+#main #diagrams {
+  display: block;
+}
 #main #default-diagram-viewport {
   position: relative;
   height: 100%;

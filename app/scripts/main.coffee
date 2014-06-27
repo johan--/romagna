@@ -1,7 +1,4 @@
 class App
-  schemas:
-    'TJ0.4': ConceptualSchemaTJ04
-    'TJ1.0': ConceptualSchemaTJ10
   constructor: () ->
     console.log 'initialized app'
 
@@ -12,11 +9,15 @@ loadedContext = null
 @loadContext = (csx) ->
   loadedContext = xml2json(csx)
   schemaVersion = loadedContext.conceptualSchema.props.version
-  app.schema = new app.schemas[schemaVersion](loadedContext.conceptualSchema)
-  console.log "NEW CONTEXT", loadedContext, xml2json(csx)
+  contextParser = new ContextParser()
+  app.schema = contextParser.createSchema(loadedContext.conceptualSchema, schemaVersion)
+  console.log "HERE IS THE SCHEMA", app.schema
   diagrams = d3.selectAll('#diagrams')
                 .selectAll('option')
-                  .data(app.schema.diagrams, (d) -> d.title)
+                  .data(app.schema.diagrams, (d) ->
+                    console.log(d)
+                    d.title
+                  )
 
   diagrams.enter()
     .append('option').attr('value', (d, i) -> i)
@@ -74,32 +75,30 @@ displayDiagram = (d) ->
     .style('stroke', (d) -> return  if diagram.title then 'black' else '#333')
     .style('stroke-width', 2)
     .attr('x1', (d) ->
-      from = parseInt(d.props['from'], 10) - 1
-      pos = parseInt(diagram.concepts[from].position.props.x)
+      from = d.props['from'] - 1
+      pos = diagram.concepts[from].visual.position.x
       return pos
     ).attr('x2', (d) ->
-      to = parseInt(d.props['to']) - 1
-      pos = parseInt(diagram.concepts[to].position.props.x)
+      to = d.props['to'] - 1
+      pos = diagram.concepts[to].visual.position.x
       return pos
     ).attr('y1', (d) ->
-      from = parseInt(d.props['from'], 10) - 1
-      pos = parseInt(diagram.concepts[from].position.props.y)
+      from = d.props['from'] - 1
+      pos = diagram.concepts[from].visual.position.y
       return pos
     ).attr('y2', (d) ->
-      to = parseInt(d.props['to'], 10) - 1
-      pos = parseInt(diagram.concepts[to].position.props.y, 10)
+      to = d.props['to'] - 1
+      pos = diagram.concepts[to].visual.position.y
       return pos
     )
-
-  
   
   #add the concepts!
   concepts = diagramGroup.selectAll('g.concept').data(diagram.concepts, (d) ->
-    #console.log diagram.title + d.props.id
-    diagram.title + d.props.id
+    console.log diagram.title + d.id
+    diagram.title + d.id
   )
   r = d3.scale.linear().domain([0, d3.max(diagram.concepts, (d) ->
-    d.objectContingent.objectRef?.length || 0
+    d.objects.objectRef?.length || 0
   )]).range([15, 30])
 
   concepts.exit().remove()
@@ -111,8 +110,8 @@ displayDiagram = (d) ->
   circles = concepts.append('circle')
   circles.style('fill', () -> return if diagram.title == "Status" then 'steelblue' else 'red')
         .attr('stroke', "#000")
-        .attr('cy', (d) -> +d.position.props.y)
-        .attr('cx', (d) -> +d.position.props.x)
+        .attr('cy', (d) -> d.visual.position.y)
+        .attr('cx', (d) -> d.visual.position.x)
         .attr('r',  (d) ->
           if d.hasObjects() then 10 else 3
         )
@@ -126,44 +125,50 @@ displayDiagram = (d) ->
         .append('g')
           .attr('class', 'concept-attribute-label')
           .attr('transform', (d) ->
-            x = parseInt(d.position.props.x) + parseInt(d.attributeContingent.labelStyle?.offset?.props.x || 0) - 100/2
-            y = parseInt(d.position.props.y) + parseInt(d.attributeContingent.labelStyle?.offset?.props.y || 0) - 12 - 15
+            x = parseInt(d.visual.position.x) + parseInt(d.attributes.labelStyle?.offset?.props.x || 0) - 100/2
+            y = parseInt(d.visual.position.y) + parseInt(d.attributes.labelStyle?.offset?.props.y || 0) - 12 - 15
             "translate(#{x}, #{y})"
           )
           
       attrLabel.append('rect')
-          .attr('width', 100)
           .attr('height', (d) ->
-            attrs = d.attributeContingent.attributeRef or d.attributeContingent.attribute
+            attrs = d.attributes.attributeRef or d.attributes.attribute
             num = if Array.isArray attrs then attrs.length else 1
             return 15 * num
           )
-          .attr('fill', (d) -> d.attributeContingent.labelStyle?.bgColor?["#text"] || "#fff")
+          .attr('fill', (d) -> d.attributes.labelStyle?.bgColor?["#text"] || "#fff")
           .attr('stroke', "#000")
       attrLabel.append('text') .attr('fill', '#000')
-          .text((d) ->
+          .each((d) ->
             attrs = d.getAttributes()
             unless Array.isArray attrs
-              attrs.name
+              d3.select(@).text(attrs.name)
+              d.textLength = @.getComputedTextLength()
             else
-              _.pluck(attrs, 'name')
+              for i, e of _.pluck(attrs, 'name')
+                d3.select(@).append('tspan')
+                            #.attr('x', () -> d3.max([@.getComputedTextLength()/2, 50]))
+                            .attr('dx', 0)
+                            .attr('dy', i * 12).text(e)
+                d.textLength = @.getComputedTextLength()
           )
             .attr('text-anchor', 'middle')
-            .attr('x', 50)
+            .attr('x', () -> d3.max([@.getComputedTextLength()/2, 50]))
             .attr('y', 12)
+      attrLabel.select('rect').attr('width', (d) -> d3.max([d.textLength + 10, 100]))
       if d.hasObjects()
         objLabel = concept
           .append('g')
             .attr('class', 'concept-object-label')
             .attr('transform', (d) ->
-              x = parseInt(d.position.props.x) + parseInt(d.objectContingent.labelStyle?.offset?.props.x || 0) - 20/2
-              y = parseInt(d.position.props.y) + parseInt(d.objectContingent.labelStyle?.offset?.props.y || 0) + 12 + 15
+              x = parseInt(d.visual.position.x) + parseInt(d.objectsLabel?.offset?.props.x || 0) - 20/2
+              y = parseInt(d.visual.position.y) + parseInt(d.objectLabel?.offset?.props.y || 0) + 12 + 15
               "translate(#{x}, #{y})"
             )
         objLabel.append('rect')
                 .attr('width', 20)
                 .attr('height', 15)
-                .attr('fill', (d) -> d.objectContingent.labelStyle?.bgColor?["#text"] || '#fff')
+                .attr('fill', (d) -> d.visual.objectlabel?.bgColor?["#text"] || '#fff')
                 .attr('stroke', "#000")
         objLabel.append('text').attr('fill', "#000")
           .text((d) -> d.objectCount() || 0)
@@ -178,10 +183,10 @@ displayDiagram = (d) ->
     boundingClientRect = @getBBox()
     minY = diagram.extent.y[0] - 50
     minX = diagram.extent.x[0] - 50
-    window.positions = _.map diagram.concepts, (c) -> c.position.props
+    window.positions = _.map diagram.concepts, (c) -> c.visual.position
     console.log diagram.extent , positions
     maxY = boundingClientRect.height + 50
-    console.log "EXTENT IS: #{diagram.extent.x[0]} #{diagram.extent.y[0]}"
+    #console.log "EXTENT IS: #{diagram.extent.x[0]} #{diagram.extent.y[0]}"
     "#{minX} #{minY} #{boundingClientRect.width} #{maxY}"
   )
 
