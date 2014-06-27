@@ -3,7 +3,6 @@ class @Diagram
   constructor: (diagram) ->
     @title = diagram.props.title
     #console.log "NEW DIAGRAM CONSTRUCTOR for #{@title}"
-    @edges = diagram.edge
     @computeExtent()
 
   display: () ->

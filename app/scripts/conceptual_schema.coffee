@@ -11,13 +11,3 @@ class @ConceptualSchema
     )
     return attribute
 
-
-
-class @ConceptualSchemaTJ04 extends ConceptualSchema
-  constructor: (schema) ->
-    @context = schema.context
-    @attributes = @context.attribute
-    @objects = @context.object
-    @diagrams = _.map(schema.diagram, (d) => new TJ04Diagram(d, this))
-  
-
