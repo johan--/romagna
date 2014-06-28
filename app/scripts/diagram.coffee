@@ -1,5 +1,9 @@
 class @Diagram
 
+  options:
+    fontSize: 12
+    lineHeight: 15
+
   constructor: (diagram) ->
     @title = diagram.props.title
     #console.log "NEW DIAGRAM CONSTRUCTOR for #{@title}"

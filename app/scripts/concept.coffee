@@ -1,19 +1,24 @@
 class @Concept
-  constructor: (c = {}, @schema = {}) ->
+  constructor: (c = {}) ->
     _.each(c, (v, k) => @[k] = v)
+
+    @visual =
+      position: {}
+      attributeLabel: {}
+      objectLabel: {}
 
   hasAttributes: () ->
     true if @attributes.attributeRef or @attributes.attribute
+
   hasObjects: () ->
-    true if @objects.objectRef or
-            @objects.object
+    @objects.length
 
   objectCount: () ->
     switch
+      when @objects.length then @objects.length
       when @objects.objectRef?.length then @objects.objectRef.length
       when @objects.objectRef?["#text"] then 1
-      when @objects.object?.length then @objects.object.length
-      when @objects.object?["#text"] then 1
+
   getAttributes: () ->
     if @attributes.attributeRef
       attribute = new Attribute(_.find(@schema.context.attribute, (d) =>

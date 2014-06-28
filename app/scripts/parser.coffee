@@ -1,13 +1,13 @@
 
 tj04SchemaParser =
-  extractObjects: (schema) ->
+  extractAllObjects: (schema) ->
     return schema.context.object
 
-  extractAttributes: (schema) ->
+  extractAllAttributes: (schema) ->
     return schema.context.attribute
 
 tj10SchemaParser =
-  extractAttributes: (schema) ->
+  extractAllAttributes: (schema) ->
     attributes = []
     _.each(schema.diagrams, (diagram) ->
       _.each(diagram.node, (n) ->
@@ -17,33 +17,49 @@ tj10SchemaParser =
     )
     return attributes
 
-  extractObjects: (schema) ->
+  extractObjects: (node) ->
+    _.compact(_.map(node.concept.objectContingent.object, (o) -> o["#text"]))
+
+  extractAllObjects: (schema) ->
     objects = []
 
-    _.each(schema.diagrams, (diagram) ->
-      _.each(diagram.node, (n) ->
-        obj = _.map(n.objectContingent.object, (o) -> o["#text"])
+    _.each(schema.diagrams, (diagram) =>
+      _.each(diagram.node, (n) =>
+        obj = @extractObjects(n)
         objects = _.union(objects, obj)
       )
     )
     return objects
 
+  parseLabelInfo: (label = {}) ->
+    labelInfo =
+      offset:
+        x: parseFloat label.offset?.props.x ? 0, 10
+        y: parseFloat label.offset?.props.y ? 0, 10
+      bgColor: label.backgroundColor?['#text'].convertToRGBA() ? "#fff"
+      textColor: label.textColor?['#text'].convertToRGBA() ? "#000"
+      textAlignment: label.textAlignment?['#text'] ? "middle"
+
+  extractVisualInfo: (node) ->
+    visual =
+      position:
+        x: parseFloat(node.position.props.x, 10)
+        y: parseFloat(node.position.props.y, 10)
+      objectLabel: @parseLabelInfo node.objectLabelStyle
+      attributeLabel:@parseLabelInfo node.attributeLabelStyle
+
+
   extractDiagrams: (schema) ->
-    return _.map schema.diagram, (d) ->
+    return _.map schema.diagram, (d) =>
       diagram = new Diagram(d)
       diagram.edges = _.pluck(d.edge, 'props')
-      diagram.concepts = _.map d.node, (node) ->
+      diagram.concepts = _.map d.node, (node) =>
         concept = new Concept()
         concept.attributes = node.concept.attributeContingent
-        concept.objects = node.concept.objectContingent
+        concept.objects = @extractObjects(node)
         concept.id = node.props.id
-        concept.visual =
-          position:
-            x: parseFloat(node.position.props.x, 10)
-            y: parseFloat(node.position.props.y, 10)
-          objectLabel: node.objectLabelStyle ? {}
-          attributeLabel: node.attributeLabelStyle ? {}
 
+        concept.visual = @extractVisualInfo(node)
         return concept
       diagram.computeExtent()
       return diagram
@@ -57,8 +73,8 @@ class @ContextParser
   parse: (schema, version) ->
     parser = @parsers[version]
     result = {}
-    result.objects = parser.extractObjects(schema)
-    result.attributes = parser.extractAttributes(schema)
+    result.objects = parser.extractAllObjects(schema)
+    result.attributes = parser.extractAllAttributes(schema)
     result.diagrams = parser.extractDiagrams(schema)
     return result
 
