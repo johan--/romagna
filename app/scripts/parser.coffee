@@ -7,7 +7,6 @@ tj04SchemaParser =
     return schema.context.attribute
 
 tj10SchemaParser =
-
   extractAttributes: (schema) ->
     attributes = []
     _.each(schema.diagrams, (diagram) ->
@@ -32,8 +31,8 @@ tj10SchemaParser =
   extractDiagrams: (schema) ->
     return _.map schema.diagram, (d) ->
       diagram = new Diagram(d)
+      diagram.edges = _.pluck(d.edge, 'props')
       diagram.concepts = _.map d.node, (node) ->
-
         concept = new Concept()
         concept.attributes = node.concept.attributeContingent
         concept.objects = node.concept.objectContingent
