@@ -7,7 +7,9 @@
     "jquery": "~1.9.1",
     "d3": "~3.4.4",
     "sql.js": "https://github.com/lovasoa/sql.js",
-    "underscore": "~1.6.0"
+    "underscore": "~1.6.0",
+    "ember": "~1.5.1",
+    "ember-data": "~1.0.0-beta.8"
   },
   "devDependencies": {}
 }

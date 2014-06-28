@@ -134,6 +134,19 @@ module.exports = function (grunt) {
         }
       }
     },
+    emberTemplates: {
+      options: {
+        templateName: function (sourceFile) {
+          var templatePath = grunt.config.process('<%= yeoman.app %>/templates/');
+          return sourceFile.replace(templatePath, '');
+        }
+      },
+      dist: {
+        files: {
+          '.tmp/scripts/compiled-templates.js': '<%= yeoman.app %>/templates/**/*.hbs'
+        }
+      }
+    },
     // not used since Uglify task does concat,
     // but still available if needed
     /*concat: {
@@ -248,6 +261,7 @@ module.exports = function (grunt) {
     },
     concurrent: {
       dist: [
+        'emberTemplates',
         'coffee',
         'less',
         'imagemin',
@@ -281,6 +295,7 @@ module.exports = function (grunt) {
 
     grunt.task.run([
       'clean:server',
+      'emberTemplates',
       'coffee',
       'less',
       'copy:server',

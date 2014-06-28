@@ -81,7 +81,6 @@ class @ContextParser
 
   createSchema: (schema, version) ->
     intermediate = @parse(schema, version)
-    console.log intermediate
     finalSchema = new ConceptualSchema(intermediate)
     return finalSchema
 

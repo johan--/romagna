@@ -15,10 +15,7 @@ loadedContext = null
   app.schema = contextParser.createSchema(loadedContext.conceptualSchema, schemaVersion)
   diagrams = d3.selectAll('#diagrams')
                 .selectAll('option')
-                  .data(app.schema.diagrams, (d) ->
-                    console.log(d)
-                    d.title
-                  )
+                  .data(app.schema.diagrams, (d) -> d.title)
 
   diagrams.enter()
     .append('option').attr('value', (d, i) -> i)
@@ -55,10 +52,10 @@ $(document).ready ->
 displayDiagram = (d) ->
   
   d ?= d3.event.target.value
-  console.log app.schema
+  #console.log app.schema
 
   diagram = app.schema.diagrams[+d]
-  console.log "NEW DIAGRAM", diagram
+  #console.log "NEW DIAGRAM", diagram
   svg = d3.select('svg#default-diagram')
 
   diagramGroup = svg.selectAll('g.diagram').data([diagram], (d) -> d.title)
@@ -115,6 +112,18 @@ displayDiagram = (d) ->
         .attr('r',  (d) ->
           if d.hasObjects() then 10 else 3
         )
+  circles.on('click', (d) ->
+    console.log 'clicked a circle', d.id
+    d.selected = not d.selected
+    selection = d3.select(@)
+    connectedEdges = edges.filter((e) -> e.from is d.id or e.to is d.id)
+    console.log connectedEdges
+    connectedEdges.transition()
+                  .style('stroke-width', () -> if d.selected then 4 else 2)
+    d3.select(@).transition()
+                  .style('fill', (d) ->  if d.selected then 'blue' else 'red')
+                  .style('stroke-width', (d) -> if d.selected then 2 else 1)
+  )
 
 
   concepts.each((d) ->
