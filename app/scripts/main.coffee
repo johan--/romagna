@@ -1,4 +1,6 @@
 class App
+  options:
+    foo: 'bar'
   constructor: () ->
     console.log 'initialized app'
 
@@ -11,7 +13,6 @@ loadedContext = null
   schemaVersion = loadedContext.conceptualSchema.props.version
   contextParser = new ContextParser()
   app.schema = contextParser.createSchema(loadedContext.conceptualSchema, schemaVersion)
-  console.log "HERE IS THE SCHEMA", app.schema
   diagrams = d3.selectAll('#diagrams')
                 .selectAll('option')
                   .data(app.schema.diagrams, (d) ->
@@ -67,7 +68,7 @@ displayDiagram = (d) ->
 
   #add the edges
   edges = diagramGroup.selectAll('line').data(diagram.edges, (d) ->
-    return "#{diagram.title}-#{d.props.from}-#{d.props.to}"
+    return "#{diagram.title}-#{d.from}-#{d.to}"
   )
 
   edges.exit().remove()
@@ -75,26 +76,25 @@ displayDiagram = (d) ->
     .style('stroke', (d) -> return  if diagram.title then 'black' else '#333')
     .style('stroke-width', 2)
     .attr('x1', (d) ->
-      from = d.props['from'] - 1
+      from = d.from - 1
       pos = diagram.concepts[from].visual.position.x
       return pos
     ).attr('x2', (d) ->
-      to = d.props['to'] - 1
+      to = d.to - 1
       pos = diagram.concepts[to].visual.position.x
       return pos
     ).attr('y1', (d) ->
-      from = d.props['from'] - 1
+      from = d.from - 1
       pos = diagram.concepts[from].visual.position.y
       return pos
     ).attr('y2', (d) ->
-      to = d.props['to'] - 1
+      to = d.to - 1
       pos = diagram.concepts[to].visual.position.y
       return pos
     )
   
   #add the concepts!
   concepts = diagramGroup.selectAll('g.concept').data(diagram.concepts, (d) ->
-    console.log diagram.title + d.id
     diagram.title + d.id
   )
   r = d3.scale.linear().domain([0, d3.max(diagram.concepts, (d) ->
@@ -118,15 +118,14 @@ displayDiagram = (d) ->
 
 
   concepts.each((d) ->
-    
     concept = d3.select(this)
-    if (d.hasAttributes())
+    if d.hasAttributes()
       attrLabel = concept
         .append('g')
           .attr('class', 'concept-attribute-label')
           .attr('transform', (d) ->
-            x = parseInt(d.visual.position.x) + parseInt(d.attributes.labelStyle?.offset?.props.x || 0) - 100/2
-            y = parseInt(d.visual.position.y) + parseInt(d.attributes.labelStyle?.offset?.props.y || 0) - 12 - 15
+            x = d.visual.position.x + d.visual.attributeLabel.offset.x - 100/2
+            y = d.visual.position.y + d.visual.attributeLabel.offset.y - diagram.options.fontSize - diagram.options.lineHeight
             "translate(#{x}, #{y})"
           )
           
@@ -136,7 +135,7 @@ displayDiagram = (d) ->
             num = if Array.isArray attrs then attrs.length else 1
             return 15 * num
           )
-          .attr('fill', (d) -> d.attributes.labelStyle?.bgColor?["#text"] || "#fff")
+          .attr('fill', (d) -> d.visual.attributeLabel.bgColor)
           .attr('stroke', "#000")
       attrLabel.append('text') .attr('fill', '#000')
           .each((d) ->
@@ -147,34 +146,33 @@ displayDiagram = (d) ->
             else
               for i, e of _.pluck(attrs, 'name')
                 d3.select(@).append('tspan')
-                            #.attr('x', () -> d3.max([@.getComputedTextLength()/2, 50]))
                             .attr('dx', 0)
-                            .attr('dy', i * 12).text(e)
+                            .attr('dy', i * diagram.options.fontSize).text(e)
                 d.textLength = @.getComputedTextLength()
           )
             .attr('text-anchor', 'middle')
             .attr('x', () -> d3.max([@.getComputedTextLength()/2, 50]))
             .attr('y', 12)
       attrLabel.select('rect').attr('width', (d) -> d3.max([d.textLength + 10, 100]))
-      if d.hasObjects()
-        objLabel = concept
-          .append('g')
-            .attr('class', 'concept-object-label')
-            .attr('transform', (d) ->
-              x = parseInt(d.visual.position.x) + parseInt(d.objectsLabel?.offset?.props.x || 0) - 20/2
-              y = parseInt(d.visual.position.y) + parseInt(d.objectLabel?.offset?.props.y || 0) + 12 + 15
-              "translate(#{x}, #{y})"
-            )
-        objLabel.append('rect')
-                .attr('width', 20)
-                .attr('height', 15)
-                .attr('fill', (d) -> d.visual.objectlabel?.bgColor?["#text"] || '#fff')
-                .attr('stroke', "#000")
-        objLabel.append('text').attr('fill', "#000")
-          .text((d) -> d.objectCount() || 0)
-            .attr('text-anchor', 'middle')
-            .attr('x', 10)
-            .attr('y', 12)
+    if d.hasObjects()
+      objLabel = concept
+        .append('g')
+          .attr('class', 'concept-object-label')
+          .attr('transform', (d) ->
+            x = parseInt(d.visual.position.x) + d.visual.objectLabel.offset.x - 20/2
+            y = parseInt(d.visual.position.y) + d.visual.objectLabel.offset.y + diagram.options.fontSize + 3
+            "translate(#{x}, #{y})"
+          )
+      objLabel.append('rect')
+              .attr('width', 20)
+              .attr('height', 15)
+              .attr('fill', (d) -> d.visual.objectLabel.bgColor)
+              .attr('stroke', "#000")
+      objLabel.append('text').attr('fill', (d) -> d.visual.objectLabel.textColor)
+        .text((d) -> d.objectCount() || 0)
+          .attr('text-anchor', 'middle')
+          .attr('x', 10)
+          .attr('y', 12)
   )
 
   $('svg').attr('width', $('svg').parent().width())
@@ -184,7 +182,7 @@ displayDiagram = (d) ->
     minY = diagram.extent.y[0] - 50
     minX = diagram.extent.x[0] - 50
     window.positions = _.map diagram.concepts, (c) -> c.visual.position
-    console.log diagram.extent , positions
+    #console.log diagram.extent , positions
     maxY = boundingClientRect.height + 50
     #console.log "EXTENT IS: #{diagram.extent.x[0]} #{diagram.extent.y[0]}"
     "#{minX} #{minY} #{boundingClientRect.width} #{maxY}"
