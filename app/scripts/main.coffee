@@ -1,21 +1,13 @@
-class App
-  options:
-    foo: 'bar'
-  constructor: () ->
-    console.log 'initialized app'
-
-
-app = new App
 loadedContext = null
 
 @loadContext = (csx) ->
   loadedContext = xml2json(csx)
   schemaVersion = loadedContext.conceptualSchema.props.version
   contextParser = new ContextParser()
-  app.schema = contextParser.createSchema(loadedContext.conceptualSchema, schemaVersion)
+  App.schema = contextParser.createSchema(loadedContext.conceptualSchema, schemaVersion)
   diagrams = d3.selectAll('#diagrams')
                 .selectAll('option')
-                  .data(app.schema.diagrams, (d) -> d.title)
+                  .data(App.schema.diagrams, (d) -> d.get('title'))
 
   diagrams.enter()
     .append('option').attr('value', (d, i) -> i)
@@ -28,27 +20,8 @@ loadedContext = null
   d3.selectAll('#diagrams').on 'change', -> dispatch.change()
   loadedContext
 
-$(document).ready ->
+$(document).ready () ->
 
-  $('#csx-file').change((e) ->
-    reader = new FileReader()
-    reader.readAsText(e.target.files[0])
-    reader.onload = ((e) ->
-      parser = new DOMParser()
-      dom = parser.parseFromString(e.target.result, "text/xml")
-      window.plm = e.target.result
-      loadContext dom
-    )
-
-  )
-  $('#sql-file').change((e) ->
-    console.log 'added sql file'
-  )
-
-
-  d3.xml 'pctest.csx', 'application/xml', loadContext
-  , (err) ->
-    console "ups, gvnr"
 displayDiagram = (d) ->
   
   d ?= d3.event.target.value
@@ -156,7 +129,7 @@ displayDiagram = (d) ->
               for i, e of _.pluck(attrs, 'name')
                 d3.select(@).append('tspan')
                             .attr('dx', 0)
-                            .attr('dy', i * diagram.options.fontSize).text(e)
+                            .attr('dy', i * diagram.options.fontSize).text(() -> e)
                 d.textLength = @.getComputedTextLength()
           )
             .attr('text-anchor', 'middle')

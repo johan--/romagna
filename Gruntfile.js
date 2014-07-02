@@ -33,6 +33,10 @@ module.exports = function (grunt) {
       gruntfile: {
         files: ['Gruntfile.js']
       },
+      emberTemplates: {
+        files: ['<%= yeoman.app %>/templates/{,*/}*.hbs'],
+        tasks: ['emberTemplates']
+      },
       livereload: {
         options: {
           livereload: '<%= connect.options.livereload %>'

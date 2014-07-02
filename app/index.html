@@ -28,28 +28,6 @@
       </nav>
     </div>
   </header>
-    <div class="container" id="main">
-      <div class="col-md-4">
-        <div class="affix-top">
-          <ul class="nav">
-            <li id='diagram-container'>
-              <h3>Diagrams</h3>
-              <select id="diagrams" size=10>
-              </select>
-              <label for="csx-file">csx:</label>
-              <input type="file" id='csx-file'>
-              <label for="sql-file">sql:</label>
-              <input type="file" id="sql-file">
-            </li>
-            <li></li>
-          </ul>
-        </div>
-      </div>
-      <div class="col-md-8" id="default-diagram-viewport">
-        <svg id="default-diagram" preserveAspectRatio="xMidYMid meet" viewBox="0 0 500 300">
-        </svg>
-      </div>
-    </div>
 
 
     <!-- Google Analytics: change UA-XXXXX-X to be your site's ID. -->
@@ -62,26 +40,52 @@
       ga('create','UA-XXXXX-X');ga('send','pageview');
     </script>
 
-    <!-- build:js(.tmp) static/scripts/templates.js -->
-      <script src="scripts/compiled-templates.js"></script>
-    <!-- endbuild -->
-
     <!-- build:js(.tmp) scripts/app.js -->
         <script src="bower_components/underscore/underscore.js"></script>
         <script src="bower_components/jquery/jquery.js"></script>
+        <script src="bower_components/x2js/xml2json.js"></script>
         <script src="bower_components/d3/d3.js"></script>
         <script src="bower_components/handlebars/handlebars.runtime.js"></script>
         <script src="bower_components/ember/ember.js"></script>
-        <!--<script src="bower_components/ember-data/ember-data.js"></script>-->
+        <script src="bower_components/ember-data/ember-data.js"></script>
+
         <script src="scripts/misc.js"></script>
         <script src="scripts/jxon.js"></script>
-        <script src="scripts/attribute.js"></script>
-        <script src="scripts/concept.js"></script>
-        <script src="scripts/diagram.js"></script>
-        <script src="scripts/conceptual_schema.js"></script>
+        <script src="scripts/app.js"></script>
         <script src="scripts/parser.js"></script>
+
+        <script src="scripts/transforms/dimension.js"></script>
+
+        <script src="scripts/models/attribute.js"></script>
+        <script src="scripts/models/concept.js"></script>
+        <script src="scripts/models/conceptual_schema.js"></script>
+        <script src="scripts/models/diagram.js"></script>
+        <script src="scripts/models/label_info.js"></script>
+        <script src="scripts/models/object.js"></script>
+        <script src="scripts/models/edge.js"></script>
+        <script src="scripts/models/node.js"></script>
+        <script src="scripts/models/context.js"></script>
+
+        <script src="scripts/controllers/application_controller.js"></script>
+        <script src="scripts/controllers/sidebar_controller.js"></script>
+        <script src="scripts/controllers/sidebar_diagram_list_controller.js"></script>
+        <script src="scripts/controllers/diagram_controller.js"></script>
+
+        <script src="scripts/routes/application_route.js"></script>
+        <script src="scripts/routes/diagram_route.js"></script>
+        <script src="scripts/routes/schema_route.js"></script>
+
+        <script src="scripts/views/diagram_view.js"></script>
+        <script src="scripts/components/file_upload_component.js"></script>
+
+        <script src="scripts/router.js"></script>
+
         <script src="scripts/main.js"></script>
         <!-- endbuild -->
+
+    <!-- build:js(.tmp) static/scripts/templates.js -->
+      <script src="scripts/compiled-templates.js"></script>
+    <!-- endbuild -->
 
         <!-- build:js(.tmp) scripts/vendor/bootstrap.js -->
         <script src="bower_components/bootstrap/js/affix.js"></script>
