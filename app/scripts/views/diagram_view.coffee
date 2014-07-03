@@ -6,17 +6,25 @@ App.DiagramView = Ember.View.extend(
   attributeBindings: [ "preserveAspectRatio"]
   preserveAspectRatio: "xMidYMid meet"
   insertedElement: false
+
+  minX: Ember.computed.alias('model.minX')
+  minY: Ember.computed.alias('model.minY')
+  maxY: Ember.computed.alias('model.maxY')
+  maxX: Ember.computed.alias('model.maxX')
+
+  margin: 20
+
   viewBox: (() ->
     #if @get 'insertedElement'
       #boundingClientRect = @$()[0].getBBox()
-    minX = @get('model.minX')
-    minY = @get('model.minY')
-    maxY = @get('model.maxY')
-    maxX = @get('model.maxX')
+    minX = @get('minX') - @get('margin')
+    minY = @get('minY') - @get('margin')
+    maxY = @get('maxY') + @get('margin')
+    maxX = @get('maxX') + @get('margin')
 
     "#{minX} #{minY} #{maxX} #{maxY}"
 
-  ).property('model.minX', 'model.minY', 'model.maxY', 'insertedElement')
+  ).property('minX', 'minY', 'maxY', 'insertedElement')
 
   width: (() ->
     if @get('insertedElement')
