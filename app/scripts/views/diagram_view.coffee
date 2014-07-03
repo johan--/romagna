@@ -157,18 +157,21 @@ App.DiagramView = Ember.View.extend(
           .append('g')
             .attr('class', 'concept-attribute-label')
             .attr('transform', (d) ->
-              x = d.get("position.x") + d.get("attributeLabel.offset.x") - 100/2
+              x = d.get("position.x") + d.get("attributeLabel.offset.x")
               y = d.get("position.y") + d.get("attributeLabel.offset.y") - diagram.get("fontSize") - diagram.get("lineHeight")
               "translate(#{x}, #{y})"
             )
             
         attrLabel.append('rect')
-            .attr('height', (d) -> return 15 * d.get('attributes.length'))
+            .attr('height', (d) ->
+              diagram.get('lineHeight') * d.get('attributes.length')
+            )
             #.attr('fill', (d) -> d.get("attributeLabel.bgColor"))
             .attr('fill', '#fff')
             .attr('stroke', "#000")
 
         attrLabel.append('text').attr('fill', '#000')
+          .style('font-size', diagram.get('fontInPX'))
           .each((d) ->
             attrs = d.get('attributes.content')
             d.get('attributes').forEach((attr, i) =>
@@ -179,9 +182,9 @@ App.DiagramView = Ember.View.extend(
               d.set("textLength", @.getComputedTextLength())
             ))
             .attr('text-anchor', 'middle')
-            .attr('x', () -> d3.max([@.getComputedTextLength()/2, 50]))
+            .attr('x', () -> @.getComputedTextLength()/2)
             .attr('y', 12)
-        attrLabel.select('rect').attr('width', (d) -> d3.max([d.get("textLength") + 10, 100]))
+        attrLabel.select('rect').attr('width', (d) -> d.get("textLength") + 10)
       unless Ember.isEmpty d.get('objects')
         objLabel = concept
           .append('g')
@@ -193,7 +196,7 @@ App.DiagramView = Ember.View.extend(
             )
         objLabel.append('rect')
                 .attr('width', 20)
-                .attr('height', 15)
+                .attr('height', diagram.get('lineHeight'))
                 #.attr('fill', (d) -> d.get("objectLabel.bgColor"))
                 .attr('fill', "#fff")
                 .attr('stroke', "#000")
