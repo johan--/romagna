@@ -3,68 +3,78 @@ App.DiagramView = Ember.View.extend(
   tagName: 'svg'
   elementId: 'default-diagram'
   model: Ember.computed.alias('controller.model')
-  attributeBindings: [ "preserveAspectRatio"]
+  attributeBindings: [ "preserveAspectRatio", "width", "height"]
   preserveAspectRatio: "xMidYMid meet"
   insertedElement: false
+  defaultViewBox: "0 0 300 300"
 
   minX: Ember.computed.alias('model.minX')
   minY: Ember.computed.alias('model.minY')
   maxY: Ember.computed.alias('model.maxY')
   maxX: Ember.computed.alias('model.maxX')
 
-  margin: 20
+  margin: 50
+  boundingBox: ( ->
+    @get('element')?.getBBox() or {width: 0, height: 0}
+  ).property('insertedElement', 'model.id')
 
   viewBox: (() ->
-    #if @get 'insertedElement'
-      #boundingClientRect = @$()[0].getBBox()
-    minX = @get('minX') - @get('margin')
-    minY = @get('minY') - @get('margin')
-    maxY = @get('maxY') + @get('margin')
-    maxX = @get('maxX') + @get('margin')
+    if @get 'insertedElement'
+      minX = @get('minX') - @get('margin')
+      minY = @get('minY') - @get('margin')
+      maxY = @get('boundingBox.height') + @get('margin')
+      maxX = @get('boundingBox.width')
 
-    "#{minX} #{minY} #{maxX} #{maxY}"
+      "#{minX} #{minY} #{maxX} #{maxY}"
+    else @get  'defaultViewBox'
 
-  ).property('minX', 'minY', 'maxY', 'insertedElement')
+  ).property('minX', 'minY', 'boundingBox', 'insertedElement')
 
   width: (() ->
     if @get('insertedElement')
       @$().parent().width()
-  ).property('insertedElement')
+  ).property('element')
 
   height: (() ->
     if @get('insertedElement')
       @$().parent().height()
-  ).property('insertedElement')
+  ).property('element')
 
   viewBoxObserver: ( () ->
   ).observes('viewBox', 'insertedElement')
 
-  _updateDimensions: () ->
-    @$().removeAttr('viewBox')
-    @$().removeAttr('viewbox')
-    @$().attr('width', @$().parent().width())
-    @$().attr('height', @$().parent().height())
-    d3.select(@$()[0]).attr('viewBox', @get('viewBox'))
-
+  _updateDimensions: ( ->
+    elem = @$()
+    elem.removeAttr('viewBox')
+    elem.removeAttr('viewbox')
+    elem.attr('width', @get('width'))
+    elem.attr('height', @get('height'))
+    console.log @get('element.getBBox.width'), @get('element').getBBox().width
+    d3.select(@get('element')).attr('viewBox', @get('viewBox'))
+  )
 
   didInsertElement: ->
     @_super()
-    @set('insertedElement', true)
     @_updateDimensions()
+    $(window).on 'resize', Ember.run.bind(@, @_updateDimensions)
     Ember.run.once this, @get('draw')
+    @set('insertedElement', true)
+    Ember.run.next @, @get('_updateDimensions')
 
-  draw: () ->
-    diagram = @get 'model'
-    conceptModels = diagram.get('concepts.content')
+  willDestroyElement: ->
+    $(window).off 'resize', Ember.run.bind(@, @_updateDimensions)
+
+
+  modelObserver: (->
+    d3.select(@get('element')).attr('viewBox', @get('defaultViewBox'))
+    Ember.run.once this, @get('draw')
+    Ember.run.next @, @get('_updateDimensions')
+  ).observes('model.id')
+
+
+  drawEdges: (diagram, diagramGroup)->
+
     edgeModels = diagram.get('edges.content')
-    svg = d3.select(@$()[0])
-
-    diagramGroup = svg.selectAll('g.diagram').data([diagram], (d) -> d.get('title'))
-
-    diagramGroup.exit().remove()
-    diagramGroup.enter().append('g').attr('class', 'diagram')
-
-    #add the edges
     edges = diagramGroup.selectAll('line').data(edgeModels, (d) -> d.get('id'))
     edges.exit().remove()
     edges.enter().append('line')
@@ -74,9 +84,14 @@ App.DiagramView = Ember.View.extend(
       .attr('x2', (d) -> d.get('to.position.x'))
       .attr('y1', (d) -> d.get('from.position.y'))
       .attr('y2', (d) -> d.get('to.position.y'))
-    
-    #add the concepts!
-    concepts = diagramGroup.selectAll('g.concept')
+
+    return edges
+
+  drawConcepts: (diagram, group)->
+
+    conceptModels = diagram.get('concepts.content')
+
+    concepts = group.selectAll('g.concept')
               .data(conceptModels, (d) -> d.get('id'))
 
     concepts.exit().remove()
@@ -92,20 +107,9 @@ App.DiagramView = Ember.View.extend(
           .attr('cx', (d) -> d.get('position.x'))
           .attr('r',  (d) -> if d.get('objects.length') then 10 else 3
           )
-    #circles.on('click', (d) ->
-      #console.log 'clicked a circle', d.id
-      #d.selected = not d.selected
-      #selection = d3.select(@)
-      #connectedEdges = edges.filter((e) -> e.from is d.id or e.to is d.id)
-      #console.log connectedEdges
-      #connectedEdges.transition()
-                    #.style('stroke-width', () -> if d.selected then 4 else 2)
-      #d3.select(@).transition()
-                    #.style('fill', (d) ->  if d.selected then 'blue' else 'red')
-                    #.style('stroke-width', (d) -> if d.selected then 2 else 1)
-    #)
+    return concepts
 
-
+  drawLabels: (diagram, group, concepts) ->
     concepts.each((d) ->
       concept = d3.select(this)
       unless Ember.isEmpty d.get('attributes')
@@ -159,4 +163,31 @@ App.DiagramView = Ember.View.extend(
             .attr('x', 10)
             .attr('y', 12)
     )
+
+  draw: () ->
+    diagram = @get 'model'
+    svg = d3.select(@get('element'))
+
+    diagramGroup = svg.selectAll('g.diagram').data([diagram], (d) -> d.get('id'))
+
+    diagramGroup.exit().remove()
+    diagramGroup.enter().append('g').attr('class', 'diagram')
+
+    @drawEdges(diagram, diagramGroup)
+    concepts = @drawConcepts(diagram, diagramGroup)
+    @drawLabels(diagram, diagramGroup, concepts)
+    
+    #circles.on('click', (d) ->
+      #console.log 'clicked a circle', d.id
+      #d.selected = not d.selected
+      #selection = d3.select(@)
+      #connectedEdges = edges.filter((e) -> e.from is d.id or e.to is d.id)
+      #console.log connectedEdges
+      #connectedEdges.transition()
+                    #.style('stroke-width', () -> if d.selected then 4 else 2)
+      #d3.select(@).transition()
+                    #.style('fill', (d) ->  if d.selected then 'blue' else 'red')
+                    #.style('stroke-width', (d) -> if d.selected then 2 else 1)
+    #)
+
 )
