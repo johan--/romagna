@@ -13,6 +13,17 @@ App.DiagramView = Ember.View.extend(
   maxY: Ember.computed.alias('model.maxY')
   maxX: Ember.computed.alias('model.maxX')
 
+  selectedNode: null
+  selectedNodes: ( ->
+    nodes = @get('selectedNode.connectedNodes') ? []
+    unless Ember.isEmpty nodes
+      nodes.pushObject @get('selectedNode')
+    return nodes
+  ).property('selectedNode')
+  selectedEdges: ( ->
+    @get('selectedNodes')?.map((n) -> n.get('allEdges.content')) ? []
+  ).property('selectedNodes')
+
   margin: 50
   boundingBox: ( ->
     @get('element')?.getBBox() or {width: 0, height: 0}
@@ -87,9 +98,10 @@ App.DiagramView = Ember.View.extend(
 
     return edges
 
-  drawConcepts: (diagram, group)->
+  drawConcepts: (diagram, group, edges)->
 
     conceptModels = diagram.get('concepts.content')
+    view = @
 
     concepts = group.selectAll('g.concept')
               .data(conceptModels, (d) -> d.get('id'))
@@ -107,6 +119,34 @@ App.DiagramView = Ember.View.extend(
           .attr('cx', (d) -> d.get('position.x'))
           .attr('r',  (d) -> if d.get('objects.length') then 10 else 3
           )
+
+    circles.on('click', (d) ->
+      console.log 'clicked a circle', d.get('id'), d.get('connectedNodes')
+      
+      selection = d3.select(@)
+
+      unless Ember.isEqual view.get('selectedNode'), d
+        view.set 'selectedNode', d
+      else
+        view.set 'selectedNode', null
+
+      connectedEdgeModels = view.get 'selectedEdges'
+       
+      connectedEdges = edges.filter (e) ->
+        view.get('selectedEdges').contains(e)
+      connectedNodes = circles.filter (c) ->
+        view.get('selectedNodes').contains(c)
+
+      edges.transition().style('stroke-width', (e) ->
+        if view.get('selectedEdges').contains(e) then 5 else 2
+      )
+      circles.transition().style('fill', (d) ->
+        if view.get('selectedNodes').contains(d) then 'red' else 'steelblue'
+      ).style('stroke-width', (d) ->
+        if view.get('selectedNodes').contains(d) then 3 else 1
+      )
+    )
+
     return concepts
 
   drawLabels: (diagram, group, concepts) ->
@@ -173,21 +213,8 @@ App.DiagramView = Ember.View.extend(
     diagramGroup.exit().remove()
     diagramGroup.enter().append('g').attr('class', 'diagram')
 
-    @drawEdges(diagram, diagramGroup)
-    concepts = @drawConcepts(diagram, diagramGroup)
+    edges = @drawEdges(diagram, diagramGroup)
+    concepts = @drawConcepts(diagram, diagramGroup, edges)
     @drawLabels(diagram, diagramGroup, concepts)
     
-    #circles.on('click', (d) ->
-      #console.log 'clicked a circle', d.id
-      #d.selected = not d.selected
-      #selection = d3.select(@)
-      #connectedEdges = edges.filter((e) -> e.from is d.id or e.to is d.id)
-      #console.log connectedEdges
-      #connectedEdges.transition()
-                    #.style('stroke-width', () -> if d.selected then 4 else 2)
-      #d3.select(@).transition()
-                    #.style('fill', (d) ->  if d.selected then 'blue' else 'red')
-                    #.style('stroke-width', (d) -> if d.selected then 2 else 1)
-    #)
-
 )
