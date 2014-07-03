@@ -57,73 +57,76 @@ App.TJ10SchemaParser =
       title: d._title
     )
 
-    concepts = _.map d.node, (n) =>
-      concept = @store.createRecord('concept_node',
-      id: _.uniqueId('node')
-      inDiagramId: n._id
-      position:
-        x: parseFloat n.position._x, 10
-        y: parseFloat n.position._y, 10
-      )
+    unless diagram.get 'parsed'
+      diagram.set 'parsed', true
 
-      if Ember.isArray n.concept.attributeContingent.attribute
-        attributes = _.map n.concept.attributeContingent.attribute, (a) =>
-          attribute = @store.findByIdOrCreate 'attribute', a,
-            id: _.uniqueId('attr')
-            value: a
-      else
-        attributes = []
-        if _.isObject  n.concept.attributeContingent
-          attribute = @store.findByIdOrCreate('attribute', n.concept.attributeContingent.attribute, {
+      concepts = _.map d.node, (n) =>
+        concept = @store.createRecord('concept_node',
+        id: _.uniqueId('node')
+        inDiagramId: n._id
+        position:
+          x: parseFloat n.position._x, 10
+          y: parseFloat n.position._y, 10
+        )
+
+        if Ember.isArray n.concept.attributeContingent.attribute
+          attributes = _.map n.concept.attributeContingent.attribute, (a) =>
+            attribute = @store.findByIdOrCreate 'attribute', a,
               id: _.uniqueId('attr')
-              value: n.concept.attributeContingent.attribute
-            })
-            #attribute.get('concepts').pushObject concept
-          attributes.push attribute
+              value: a
+        else
+          attributes = []
+          if _.isObject  n.concept.attributeContingent
+            attribute = @store.findByIdOrCreate('attribute', n.concept.attributeContingent.attribute, {
+                id: _.uniqueId('attr')
+                value: n.concept.attributeContingent.attribute
+              })
+              #attribute.get('concepts').pushObject concept
+            attributes.push attribute
 
-      #console.log attributes
-      concept.get('attributes').pushObjects attributes
+        #console.log attributes
+        concept.get('attributes').pushObjects attributes
 
-      if Ember.isArray n.concept.objectContingent.object
-        objects = _.map n.concept.objectContingent.object, (o) =>
-          object = @store.findByIdOrCreate 'object', o,
-            id: _.uniqueId('obj')
-            value: o
-      else
-        objects = []
-        if _.isObject n.concept.objectContingent
-          #console.log n.concept.objectContingent
-          object = @store.findByIdOrCreate('object', n.concept.objectContingent.object, {
+        if Ember.isArray n.concept.objectContingent.object
+          objects = _.map n.concept.objectContingent.object, (o) =>
+            object = @store.findByIdOrCreate 'object', o,
               id: _.uniqueId('obj')
-              value: n.concept.objectContingent.object
-            })
-          objects.push object
-      #console.log objects
+              value: o
+        else
+          objects = []
+          if _.isObject n.concept.objectContingent
+            #console.log n.concept.objectContingent
+            object = @store.findByIdOrCreate('object', n.concept.objectContingent.object, {
+                id: _.uniqueId('obj')
+                value: n.concept.objectContingent.object
+              })
+            objects.push object
+        #console.log objects
 
-      concept.get('objects').pushObjects objects
+        concept.get('objects').pushObjects objects
 
-      return concept
+        return concept
 
-    diagram.get('concepts').pushObjects concepts
+      diagram.get('concepts').pushObjects concepts
 
-      #concept.visual = @extractVisualInfo(node)
-      #return concept
+        #concept.visual = @extractVisualInfo(node)
+        #return concept
 
-    edges = _.map d.edge, (e) =>
-      edge = @store.createRecord('edge',
-        id: _.uniqueId("edge")
-      )
-      inboundNode = diagram.get('concepts').findBy('inDiagramId', e._to)
-      outboundNode = diagram.get('concepts').findBy('inDiagramId', e._from)
-      edge.set 'to', inboundNode
-      edge.set 'from', outboundNode
-      edge.set 'diagram', diagram
-      inboundNode.get('inboundEdges').pushObject edge
-      outboundNode.get('outboundEdges').pushObject edge
+      edges = _.map d.edge, (e) =>
+        edge = @store.createRecord('edge',
+          id: _.uniqueId("edge")
+        )
+        inboundNode = diagram.get('concepts').findBy('inDiagramId', e._to)
+        outboundNode = diagram.get('concepts').findBy('inDiagramId', e._from)
+        edge.set 'to', inboundNode
+        edge.set 'from', outboundNode
+        edge.set 'diagram', diagram
+        inboundNode.get('inboundEdges').pushObject edge
+        outboundNode.get('outboundEdges').pushObject edge
 
-      return edge
+        return edge
 
-    diagram.get('edges').pushObjects edges
+      diagram.get('edges').pushObjects edges
     return diagram
 
 
