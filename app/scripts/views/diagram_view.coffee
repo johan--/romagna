@@ -111,6 +111,7 @@ App.DiagramView = Ember.View.extend(
     concepts.enter()
       .append('g')
       .attr('class', 'concept')
+      .attr('id', (d) -> "node-#{d.get('inDiagramId')}")
 
     circles = concepts.append('circle')
     circles.style('fill', 'steelblue')
@@ -145,6 +146,9 @@ App.DiagramView = Ember.View.extend(
       ).style('stroke-width', (d) ->
         if view.get('selectedNodes').contains(d) then 3 else 1
       )
+    circles.on('dblclick', (d) ->
+      console.log 'trying to drill down, huh'
+    )
     )
 
     return concepts
@@ -156,21 +160,15 @@ App.DiagramView = Ember.View.extend(
         attrLabel = concept
           .append('g')
             .attr('class', 'concept-attribute-label')
-            .attr('transform', (d) ->
-              x = d.get("position.x") + d.get("attributeLabel.offset.x")
-              y = d.get("position.y") + d.get("attributeLabel.offset.y") - diagram.get("fontSize") - diagram.get("lineHeight")
-              "translate(#{x}, #{y})"
-            )
             
         attrLabel.append('rect')
             .attr('height', (d) ->
               diagram.get('lineHeight') * d.get('attributes.length')
             )
-            #.attr('fill', (d) -> d.get("attributeLabel.bgColor"))
-            .attr('fill', '#fff')
+            .attr('fill', (d) -> d.get("attributeLabel.bgColor"))
             .attr('stroke', "#000")
 
-        attrLabel.append('text').attr('fill', '#000')
+        attrLabel.append('text').attr('fill', d.get('attributeLabel.textColor'))
           .style('font-size', diagram.get('fontInPX'))
           .each((d) ->
             attrs = d.get('attributes.content')
@@ -183,8 +181,14 @@ App.DiagramView = Ember.View.extend(
             ))
             .attr('text-anchor', 'middle')
             .attr('x', () -> @.getComputedTextLength()/2)
-            .attr('y', 12)
+            .attr('y', diagram.get('lineHeight'))
         attrLabel.select('rect').attr('width', (d) -> d.get("textLength") + 10)
+        attrLabel.attr('transform', (d) ->
+              x = d.get("position.x") + d.get("attributeLabel.offset.x") - d.get('textLength') + 10
+              y = d.get("position.y") + d.get("attributeLabel.offset.y") - diagram.get("fontSize") - diagram.get("lineHeight")
+              "translate(#{x}, #{y})"
+            )
+
       unless Ember.isEmpty d.get('objects')
         objLabel = concept
           .append('g')
@@ -197,8 +201,7 @@ App.DiagramView = Ember.View.extend(
         objLabel.append('rect')
                 .attr('width', 20)
                 .attr('height', diagram.get('lineHeight'))
-                #.attr('fill', (d) -> d.get("objectLabel.bgColor"))
-                .attr('fill', "#fff")
+                .attr('fill', (d) -> d.get("objectLabel.bgColor"))
                 .attr('stroke', "#000")
         objLabel.append('text').attr('fill', (d) -> d.get("objectLabel.textColor"))
           .text((d) -> d.get('objects.length'))
