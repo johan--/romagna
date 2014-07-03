@@ -52,14 +52,15 @@ App.TJ10SchemaParser =
       attributeLabel:@parseLabelInfo node.attributeLabelStyle
 
   extractDiagram: (d, i) ->
-    diagram = @store.findByIdOrCreate('diagram', d._title,
-      id: d._title
+    diagram = @store.findByIdOrCreate('diagram', i,
+      id: _.uniqueId('dia')
       title: d._title
     )
 
     concepts = _.map d.node, (n) =>
       concept = @store.createRecord('concept_node',
-      id: n._id
+      id: _.uniqueId('node')
+      inDiagramId: n._id
       position:
         x: parseFloat n.position._x, 10
         y: parseFloat n.position._y, 10
@@ -68,13 +69,13 @@ App.TJ10SchemaParser =
       if Ember.isArray n.concept.attributeContingent.attribute
         attributes = _.map n.concept.attributeContingent.attribute, (a) =>
           attribute = @store.findByIdOrCreate 'attribute', a,
-            id: a
+            id: _.uniqueId('attr')
             value: a
       else
         attributes = []
         if _.isObject  n.concept.attributeContingent
           attribute = @store.findByIdOrCreate('attribute', n.concept.attributeContingent.attribute, {
-              id: n.concept.attributeContingent.attribute
+              id: _.uniqueId('attr')
               value: n.concept.attributeContingent.attribute
             })
             #attribute.get('concepts').pushObject concept
@@ -86,14 +87,14 @@ App.TJ10SchemaParser =
       if Ember.isArray n.concept.objectContingent.object
         objects = _.map n.concept.objectContingent.object, (o) =>
           object = @store.findByIdOrCreate 'object', o,
-            id: o
+            id: _.uniqueId('obj')
             value: o
       else
         objects = []
         if _.isObject n.concept.objectContingent
           #console.log n.concept.objectContingent
           object = @store.findByIdOrCreate('object', n.concept.objectContingent.object, {
-              id: n.concept.objectContingent.object
+              id: _.uniqueId('obj')
               value: n.concept.objectContingent.object
             })
           objects.push object
@@ -110,10 +111,10 @@ App.TJ10SchemaParser =
 
     edges = _.map d.edge, (e) =>
       edge = @store.createRecord('edge',
-        id: "#{i}-#{e._from}-#{e._to}"
+        id: _.uniqueId("edge")
       )
-      inboundNode = diagram.get('concepts').findBy('id', e._to)
-      outboundNode = diagram.get('concepts').findBy('id', e._from)
+      inboundNode = diagram.get('concepts').findBy('inDiagramId', e._to)
+      outboundNode = diagram.get('concepts').findBy('inDiagramId', e._from)
       edge.set 'to', inboundNode
       edge.set 'from', outboundNode
       edge.set 'diagram', diagram
@@ -132,8 +133,8 @@ App.TJ10SchemaParser =
   extractDiagramNames: (schema, schemaName) ->
 
     diagrams = _.map schema.diagram, (d, i) =>
-      @store.findByIdOrCreate 'diagram', d._title,
-        id: d._title
+      @store.createRecord 'diagram',
+        id: _.uniqueId('dia')
         title: d._title
 
 App.ContextParser = Ember.Object.extend(
@@ -156,7 +157,7 @@ App.ContextParser = Ember.Object.extend(
     result.get('diagrams').pushObjects diagrams
     return result
 
-  parseSingleDiagram: (schema, title) ->
+  parseSingleDiagram: (schema, title, id) ->
     console.log schema, title, schema.diagram.findBy('_title', title)
-    return @parser.extractDiagram(schema.diagram.findBy('_title', title))
+    return @parser.extractDiagram(schema.diagram.findBy('_title', title), id)
 )
