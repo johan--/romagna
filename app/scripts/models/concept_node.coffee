@@ -13,7 +13,7 @@ App.ConceptNode = DS.Model.extend(
   allEdges:             Ember.computed.union('inboundEdges', 'outboundEdges')
   connectedNodes:       Ember.computed.union('filteredNodes', 'idealNodes')
 
-  filteredNodes: ( ->
+  idealNodes: ( ->
     nodes = []
 
     inboundNodes = @get('inboundEdges').map((d) -> d.get('from'))
@@ -29,7 +29,7 @@ App.ConceptNode = DS.Model.extend(
     return nodes
   ).property('inboundEdges')
 
-  idealNodes: ( ->
+  filteredNodes: ( ->
     nodes = []
 
     outboundNodes = @get('outboundEdges').map((d) -> d.get 'to')
@@ -44,5 +44,19 @@ App.ConceptNode = DS.Model.extend(
 
     return nodes
   ).property('outboundEdges')
+
+  allObjects: ( ->
+    @get('filteredNodes').reduce((previousValue, item) ->
+      previousValue.pushObjects item.get('objects.content')
+      return previousValue.uniq()
+    , @get('objects.content').copy())
+  ).property('filteredNodes')
+
+  allAttributes: ( ->
+    @get('idealNodes').reduce((previousValue, item) ->
+      previousValue.pushObjects item.get('attributes.content')
+      return previousValue.uniq()
+    , @get('attributes.content').copy())
+  ).property('idealNodes')
 
 )
