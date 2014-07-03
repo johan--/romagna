@@ -105,12 +105,31 @@ App.TJ10SchemaParser =
 
         concept.get('objects').pushObjects objects
 
+        if n.attributeLabelStyle
+          attributeLabel = @store.createRecord 'label_info',
+            id: _.uniqueId('label')
+            offset:
+              x: parseInt n.attributeLabelStyle.offset._x, 10
+              y: parseInt n.attributeLabelStyle.offset._y, 10
+            bgColor: n.attributeLabelStyle.backgroundColor.convertToRGBA()
+            textColor: n.attributeLabelStyle.textColor.convertToRGBA()
+            textAlignment: n.attributeLabelStyle.textAlignment
+          concept.set('attributeLabel', attributeLabel)
+
+        if n.objectLabelStyle
+          objectLabel = @store.createRecord 'label_info',
+            id: _.uniqueId('label')
+            offset:
+              x: parseInt n.objectLabelStyle.offset._x, 10
+              y: parseInt n.objectLabelStyle.offset._y, 10
+            bgColor: n.objectLabelStyle.backgroundColor.convertToRGBA()
+            textColor: n.objectLabelStyle.textColor.convertToRGBA()
+            textAlignment: n.objectLabelStyle.textAlignment
+          concept.set('objectLabel', objectLabel)
+
         return concept
 
       diagram.get('concepts').pushObjects concepts
-
-        #concept.visual = @extractVisualInfo(node)
-        #return concept
 
       edges = _.map d.edge, (e) =>
         edge = @store.createRecord('edge',
