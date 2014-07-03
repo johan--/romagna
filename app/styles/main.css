@@ -5967,18 +5967,22 @@ html,
 body {
   height: 100%;
 }
-#main {
+#main,
+#application-view {
   width: 100%;
   height: 100%;
 }
-#main #diagrams {
+#main #diagrams,
+#application-view #diagrams {
   display: block;
 }
-#main #default-diagram-viewport {
+#main #default-diagram-viewport,
+#application-view #default-diagram-viewport {
   position: relative;
   height: 100%;
 }
-#main svg {
+#main svg,
+#application-view svg {
   /*position: absolute;*/
   left: 0;
   top: 0;
