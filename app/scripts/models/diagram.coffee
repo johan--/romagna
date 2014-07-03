@@ -3,11 +3,19 @@ App.Diagram = DS.Model.extend(
   fontSize:     DS.attr('number', {defaultValue: 12})
   lineHeight:   DS.attr('number', {defaultValue: 15})
 
-  min:        DS.attr('dimension', {defaultValue: {x: 0, y: 0}})
-  max:        DS.attr('dimension', {defaultValue: {x: 0, y: 0}})
+  positionsX: Ember.computed.mapBy('concepts', 'position.x')
+  positionsY: Ember.computed.mapBy('concepts', 'position.y')
 
-  nodes:      DS.hasMany('node')
-  edges:      DS.hasMany('edge')
+  minX: Ember.computed.min('positionsX')
+  minY: Ember.computed.min('positionsY')
+  maxX: Ember.computed.max('positionsX')
+  maxY: Ember.computed.max('positionsY')
+
+  extentX: Ember.computed.collect('minX', 'maxX')
+  extentY: Ember.computed.collect('minY', 'maxY')
+
+  concepts:      DS.hasMany('concept_node')
+  edges:         DS.hasMany('edge')
 
 
   computeExtent: () ->
