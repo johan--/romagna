@@ -1,4 +1,4 @@
 App.ApplicationView = Ember.View.extend(
-  elementId: 'applicationv-view'
+  elementId: 'application-view'
   classNames: ['application']
 )
