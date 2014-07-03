@@ -57,31 +57,27 @@ App.TJ10SchemaParser =
       title: d._title
     )
 
-    nodes = _.map d.node, (n) =>
-      node = @store.createRecord('node',
+    concepts = _.map d.node, (n) =>
+      concept = @store.createRecord('concept_node',
       id: n._id
       position:
         x: parseFloat n.position._x, 10
         y: parseFloat n.position._y, 10
       )
-      concept = @store.createRecord 'concept'
-      node.set 'concept', concept
-      concept.set 'node', node
 
       if Ember.isArray n.concept.attributeContingent.attribute
         attributes = _.map n.concept.attributeContingent.attribute, (a) =>
           attribute = @store.findByIdOrCreate 'attribute', a,
             id: a
             value: a
-
       else
         attributes = []
         if _.isObject  n.concept.attributeContingent
-          attribute = @store.getById('attribute', n.concept.attributeContingent.attribute) ?
-                      @store.createRecord('attribute',{
+          attribute = @store.findByIdOrCreate('attribute', n.concept.attributeContingent.attribute, {
               id: n.concept.attributeContingent.attribute
               value: n.concept.attributeContingent.attribute
             })
+            #attribute.get('concepts').pushObject concept
           attributes.push attribute
 
       #console.log attributes
@@ -96,8 +92,7 @@ App.TJ10SchemaParser =
         objects = []
         if _.isObject n.concept.objectContingent
           #console.log n.concept.objectContingent
-          object = @store.getById('object', n.concept.objectContingent.object) ?
-                   @store.createRecord('object',{
+          object = @store.findByIdOrCreate('object', n.concept.objectContingent.object, {
               id: n.concept.objectContingent.object
               value: n.concept.objectContingent.object
             })
@@ -106,9 +101,9 @@ App.TJ10SchemaParser =
 
       concept.get('objects').pushObjects objects
 
-      return node
+      return concept
 
-    diagram.get('nodes').pushObjects nodes
+    diagram.get('concepts').pushObjects concepts
 
       #concept.visual = @extractVisualInfo(node)
       #return concept
@@ -117,8 +112,8 @@ App.TJ10SchemaParser =
       edge = @store.createRecord('edge',
         id: "#{i}-#{e._from}-#{e._to}"
       )
-      inboundNode = diagram.get('nodes').findBy('id', e._to)
-      outboundNode = diagram.get('nodes').findBy('id', e._from)
+      inboundNode = diagram.get('concepts').findBy('id', e._to)
+      outboundNode = diagram.get('concepts').findBy('id', e._from)
       edge.set 'to', inboundNode
       edge.set 'from', outboundNode
       edge.set 'diagram', diagram
