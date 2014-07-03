@@ -3,6 +3,6 @@ App.ConceptualSchema = DS.Model.extend(
   version:    DS.attr('string')
   diagrams:   DS.hasMany('diagrams')
   context:    DS.belongsTo('context')
-  concepts:   DS.hasMany('concept')
+  concepts:   DS.hasMany('concept_node')
 )
 

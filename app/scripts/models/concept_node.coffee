@@ -1,6 +1,7 @@
-App.Node = DS.Model.extend(
+App.ConceptNode = DS.Model.extend(
   position:             DS.attr('dimension')
-  concept:              DS.belongsTo('concept')
+  objects:            DS.hasMany('object')
+  attributes:         DS.hasMany('attribute')
   objectLabel:          DS.belongsTo('label_info')
   attributeLabel:       DS.belongsTo('label_info')
   inboundEdges:         DS.hasMany('edge', {inverse: 'to'})
