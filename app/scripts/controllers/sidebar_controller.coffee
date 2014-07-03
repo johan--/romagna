@@ -3,6 +3,12 @@ App.SidebarController = Ember.Controller.extend(
   needsSQL: false
   csx: Ember.computed.alias 'controllers.application.csx'
   csxFileName: Ember.computed.alias 'controllers.application.csxFileName'
+  objectLabelDisplay: 'count'
+
+  objectLabelDisplayOptions: [
+    {label: "Display count", value: "count"}
+    {label: "Display list", value: "list"}
+  ]
 
   actions:
     parseCSX: (uploadedFile, fileName) ->
