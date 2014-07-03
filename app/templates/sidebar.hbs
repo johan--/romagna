@@ -4,8 +4,10 @@
     {{render "sidebar/diagram_list"}}
     <label for="csx-file">csx:</label>
     {{file-upload elementId="csx-file" action="parseCSX"}}
-    <label for="sql-file">sql:</label>
-    {{file-upload elementId="sql-file" value=sql action="parseSQL"}}
+    {{#if needsSQL}}
+      <label for="sql-file">sql:</label>
+      {{file-upload elementId="sql-file" value=sql action="parseSQL"}}
+    {{/if}}
   </li>
   <li></li>
 </ul>

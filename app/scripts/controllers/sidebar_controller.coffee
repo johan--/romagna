@@ -1,5 +1,6 @@
 App.SidebarController = Ember.Controller.extend(
   needs: ['application']
+  needsSQL: false
   csx: Ember.computed.alias 'controllers.application.csx'
   csxFileName: Ember.computed.alias 'controllers.application.csxFileName'
 
