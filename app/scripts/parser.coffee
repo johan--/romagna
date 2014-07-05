@@ -51,6 +51,15 @@ App.TJ10SchemaParser =
       objectLabel: @parseLabelInfo node.objectLabelStyle
       attributeLabel:@parseLabelInfo node.attributeLabelStyle
 
+  createAttributeOrObject: (type, obj, store) ->
+    all = store.all type
+    found = all.findBy('value', obj)
+    unless found
+      store.createRecord type,
+        id: _.uniqueId(type)
+        value: obj
+    else found
+
   extractDiagram: (d, i) ->
     diagram = @store.findByIdOrCreate('diagram', i,
       id: _.uniqueId('dia')
@@ -71,17 +80,11 @@ App.TJ10SchemaParser =
 
         if Ember.isArray n.concept.attributeContingent.attribute
           attributes = _.map n.concept.attributeContingent.attribute, (a) =>
-            attribute = @store.findByIdOrCreate 'attribute', a,
-              id: _.uniqueId('attr')
-              value: a
+            attribute = @createAttributeOrObject 'attribute', a, @store
         else
           attributes = []
           if _.isObject  n.concept.attributeContingent
-            attribute = @store.findByIdOrCreate('attribute', n.concept.attributeContingent.attribute, {
-                id: _.uniqueId('attr')
-                value: n.concept.attributeContingent.attribute
-              })
-              #attribute.get('concepts').pushObject concept
+            attribute = @createAttributeOrObject 'attribute', n.concept.attributeContingent.attribute, @store
             attributes.push attribute
 
         #console.log attributes
@@ -89,19 +92,12 @@ App.TJ10SchemaParser =
 
         if Ember.isArray n.concept.objectContingent.object
           objects = _.map n.concept.objectContingent.object, (o) =>
-            object = @store.findByIdOrCreate 'object', o,
-              id: _.uniqueId('obj')
-              value: o
+            @createAttributeOrObject 'object', o, @store
         else
           objects = []
           if _.isObject n.concept.objectContingent
-            #console.log n.concept.objectContingent
-            object = @store.findByIdOrCreate('object', n.concept.objectContingent.object, {
-                id: _.uniqueId('obj')
-                value: n.concept.objectContingent.object
-              })
+            object = @createAttributeOrObject 'object', n.concept.objectContingent.object, @store
             objects.push object
-        #console.log objects
 
         concept.get('objects').pushObjects objects
 
