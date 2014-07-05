@@ -150,6 +150,7 @@ App.TJ10SchemaParser =
 
   extractDiagramNames: (schema, schemaName) ->
 
+    @store.unloadAll('diagram')
     diagrams = _.map schema.diagram, (d, i) =>
       @store.createRecord 'diagram',
         id: _.uniqueId('dia')

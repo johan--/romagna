@@ -2,4 +2,4 @@
   #location: 'history'
 
 App.Router.map ->
-  @resource 'diagram', {path: '/diagram/:diagram_id'}
+  @resource 'diagram', {path: '/:diagram_id'}
