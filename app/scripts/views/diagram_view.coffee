@@ -42,15 +42,15 @@ App.DiagramView = Ember.View.extend(
 
   ).property('minX', 'minY', 'boundingBox', 'insertedElement')
 
-  width: (() ->
-    if @get('insertedElement')
+  width: ( ->
+    if @get 'insertedElement'
       @$().parent().width()
-  ).property('element')
+  ).property('element', 'insertedElement')
 
-  height: (() ->
-    if @get('insertedElement')
+  height: ( ->
+    if @get 'insertedElement'
       @$().parent().height()
-  ).property('element')
+  ).property('element', 'insertedElement')
 
   viewBoxObserver: ( () ->
   ).observes('viewBox', 'insertedElement')
@@ -63,6 +63,10 @@ App.DiagramView = Ember.View.extend(
     elem.attr('height', @get('height'))
     console.log @get('element.getBBox.width'), @get('element').getBBox().width
     d3.select(@get('element')).attr('viewBox', @get('viewBox'))
+    d3.select(@get('element')).selectAll('rect.overlay')
+                              .attr('width', @get('width'))
+                              .attr('height', @get('height'))
+                              .attr('transform', "translate(#{@get('minX') - 50}, #{@get('minY')- 50})")
   )
 
   didInsertElement: ->
@@ -72,6 +76,7 @@ App.DiagramView = Ember.View.extend(
     Ember.run.once this, @get('draw')
     @set('insertedElement', true)
     Ember.run.next @, @get('_updateDimensions')
+    Ember.run.next @, @get('_insertOverlay')
 
   willDestroyElement: ->
     $(window).off 'resize', Ember.run.bind(@, @_updateDimensions)
@@ -230,9 +235,12 @@ App.DiagramView = Ember.View.extend(
                       .on('zoom', Ember.run.bind(@, @_zoom))
 
     diagramGroup = svg.selectAll('g.diagram').data([diagram], (d) -> d.get('id'))
-
     diagramGroup.exit().remove()
     diagramGroup.enter().append('g').attr('class', 'diagram').call(zoom)
+
+    overlay = diagramGroup.append('rect')
+    overlay.classed({overlay: true})
+
 
     edges = @drawEdges(diagram, diagramGroup)
     concepts = @drawConcepts(diagram, diagramGroup, edges)
@@ -240,5 +248,7 @@ App.DiagramView = Ember.View.extend(
     
   _zoom: () ->
     d3.select(@get('element')).select('g.diagram').attr("transform", "translate(#{d3.event.translate})scale(#{d3.event.scale})")
+
+  _insertOverlay : ->
 
 )

@@ -5998,6 +5998,10 @@ body {
 #application-view svg .concept-attribute-label {
   font-size: 10px;
 }
+#main svg rect.overlay,
+#application-view svg rect.overlay {
+  fill: #fff;
+}
 #sidebar select {
   width: 100%;
 }
