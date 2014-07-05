@@ -9,6 +9,7 @@ App.SidebarController = Ember.Controller.extend(
   currentDiagram: null
 
   diagramQueue: []
+  queueIndex: -1
   currentQueuedDiagram: null
 
   objectLabelDisplayOptions: [
@@ -18,9 +19,8 @@ App.SidebarController = Ember.Controller.extend(
 
   diagramQueueObserver: ( ->
     console.log  'changed first object of the diagram queue', @get('diagramQueue.firstObject')
-    unless @get('diagramQueue.firstObject') is undefined or
-           @get('diagramQueue.firstObject') is null
-      @set 'currentQueuedDiagram', @get('diagramQueue.firstObject')
+    @set 'currentQueuedDiagram', @get('diagramQueue.firstObject')
+    @set 'queueIndex', 0
   ).observes('diagramQueue.firstObject')
 
   currentQueuedDiagramObserver: (() ->
@@ -38,4 +38,8 @@ App.SidebarController = Ember.Controller.extend(
 
     addToQueue: (diagram) ->
       @get('diagramQueue').pushObject diagram
+
+    advanceInQueue: () ->
+      @set 'currentQueuedDiagram', @get('diagramQueue').nextObject(@get('queueIndex'), @get('currentQueuedDiagram'))
+      @incrementProperty('queueIndex')
 )

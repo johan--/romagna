@@ -3,6 +3,7 @@ App.DiagramView = Ember.View.extend(
   tagName: 'svg'
   elementId: 'default-diagram'
   model: Ember.computed.alias('controller.model')
+  availableObjects: Ember.computed.alias('controller.availableObjects')
   attributeBindings: [ "preserveAspectRatio", "width", "height"]
   preserveAspectRatio: "xMidYMid meet"
   insertedElement: false
@@ -118,7 +119,7 @@ App.DiagramView = Ember.View.extend(
           .attr('stroke', "#000")
           .attr('cy', (d) -> d.get('position.y'))
           .attr('cx', (d) -> d.get('position.x'))
-          .attr('r',  (d) -> if d.get('objects.length') then 10 else 3
+          .attr('r',  (d) -> if d.intersectedObjects(view.get('availableObjects')).get('length') then 10 else 3
           )
 
     circles.on('click', (d) ->
@@ -146,14 +147,19 @@ App.DiagramView = Ember.View.extend(
       ).style('stroke-width', (d) ->
         if view.get('selectedNodes').contains(d) then 3 else 1
       )
-    circles.on('dblclick', (d) ->
-      console.log 'trying to drill down, huh'
     )
+
+    circles.on('dblclick', (d, e) ->
+      d3.event.preventDefault()
+      console.log 'trying to drill down, huh'
+
+      view.get('controller').send('filterByConcept', d)
     )
 
     return concepts
 
   drawLabels: (diagram, group, concepts) ->
+    view = @
     concepts.each((d) ->
       concept = d3.select(this)
       unless Ember.isEmpty d.get('attributes')
@@ -204,7 +210,7 @@ App.DiagramView = Ember.View.extend(
                 .attr('fill', (d) -> d.get("objectLabel.bgColor"))
                 .attr('stroke', "#000")
         objLabel.append('text').attr('fill', (d) -> d.get("objectLabel.textColor"))
-          .text((d) -> d.get('objects.length'))
+          .text((d) -> d.intersectedObjects(view.get('availableObjects')).get('length'))
             .attr('text-anchor', 'middle')
             .attr('x', 10)
             .attr('y', 12)
