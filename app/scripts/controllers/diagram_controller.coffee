@@ -7,11 +7,6 @@ App.DiagramController = Ember.ObjectController.extend(
   extractDiagram: () ->
     @get('parser').parseSingleDiagram(@get('controllers.application.csxJSON.conceptualSchema'), @get('model.title'))
 
-  actions:
-    filterByConcept: (concept) ->
-      @get('pastConcepts').pushObject concept
-      @get('controllers.sidebar').send('advanceInQueue')
-
   availableObjects: ( ->
     if @get('pastConcepts.length') >= 1
       @get('pastConcepts').reduce((previousValue, item, index) ->
@@ -20,4 +15,13 @@ App.DiagramController = Ember.ObjectController.extend(
     else
       return null
   ).property('pastConcepts.@each')
+
+  actions:
+    filterByConcept: (concept) ->
+      @get('pastConcepts').pushObject concept
+      @get('controllers.sidebar').send('advanceInQueue')
+
+    focusConcept: (concept) ->
+      @set('controllers.sidebar.focusedConcept', concept)
+
 )

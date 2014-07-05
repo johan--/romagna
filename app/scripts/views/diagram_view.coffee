@@ -151,9 +151,15 @@ App.DiagramView = Ember.View.extend(
 
     circles.on('dblclick', (d, e) ->
       d3.event.preventDefault()
+      d3.event.stopImmediatePropagation?()
+      d3.event.stopPropagation?()
       console.log 'trying to drill down, huh'
-
       view.get('controller').send('filterByConcept', d)
+    )
+
+    circles.on('mouseover', (d, e) ->
+      console.log 'over a concept'
+      view.get('controller').send('focusConcept', d)
     )
 
     return concepts

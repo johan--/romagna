@@ -1,6 +1,6 @@
-<ul class="nav">
+<ul class="nav well">
   <li id="diagram-container">
-    <h3>Diagrams</h3>
+    <h4>Diagrams</h4>
     {{view Ember.Select 
       content=diagramList
       optionValuePath = 'content.id'
@@ -22,6 +22,7 @@
     {{label-radio content=objectLabelDisplayOptions value=objectLabelDisplay name="objectLabel"}}
   </li>
   <li>
+  <h4>Queue</h4>
   {{view Ember.Select 
       content=diagramQueue 
       optionValuePath = 'content.id'
@@ -29,5 +30,23 @@
       size=5
       multiple=true
   }}
+  </li>
+  <li>
+    <h4>Current Concept</h4>
+    {{#with focusedConcept}}
+      <h5>{{title}}</h5>
+      <h6>Attributes</h6>
+      <ul class="attribute-list">
+        {{#each allAttributes}}
+        <li>{{value}}</li>
+      {{/each}}
+      </ul>
+      <h6>Objects</h6>
+      <ul class="object-list">
+        {{#each allObjects}}
+          <li>{{value}}</li>
+        {{/each}}
+      </ul>
+    {{/with}}
   </li>
 </ul>
