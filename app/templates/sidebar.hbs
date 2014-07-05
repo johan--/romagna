@@ -1,7 +1,15 @@
 <ul class="nav">
   <li id="diagram-container">
     <h3>Diagrams</h3>
-    {{render "sidebar/diagram_list"}}
+    {{view Ember.Select 
+      content=diagramList
+      optionValuePath = 'content.id'
+      optionLabelPath = 'content.title'
+      optionView=App.DiagramOptionView
+      selection = currentDiagram
+      size=5
+      elementId = 'diagrams'
+    }}
     <label for="csx-file">csx:</label>
     {{file-upload elementId="csx-file" action="parseCSX"}}
     {{#if needsSQL}}
@@ -12,5 +20,14 @@
   <li>
   <h4>Options</h4>
     {{label-radio content=objectLabelDisplayOptions value=objectLabelDisplay name="objectLabel"}}
+  </li>
+  <li>
+  {{view Ember.Select 
+      content=diagramQueue 
+      optionValuePath = 'content.id'
+      optionLabelPath = 'content.title'
+      size=5
+      multiple=true
+  }}
   </li>
 </ul>
