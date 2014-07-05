@@ -1,7 +1,7 @@
 App.Diagram = DS.Model.extend(
   title:        DS.attr('string')
   fontSize:     DS.attr('number', {defaultValue: 10})
-  lineHeight:   DS.attr('number', {defaultValue: 12})
+  lineHeight:   DS.attr('number', {defaultValue: 11})
 
   fontInPX:   (-> "#{@get('fontSize')}px").property('fontSize')
   positionsX: Ember.computed.mapBy('concepts', 'position.x')
