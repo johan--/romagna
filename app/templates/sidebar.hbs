@@ -34,14 +34,13 @@
   <li>
     <h4>Current Concept</h4>
     {{#with focusedConcept}}
-      <h5>{{title}}</h5>
-      <h6>Attributes</h6>
+    <h6>Attributes ({{allAttributes.length}})</h6>
       <ul class="attribute-list">
         {{#each allAttributes}}
         <li>{{value}}</li>
       {{/each}}
       </ul>
-      <h6>Objects</h6>
+      <h6>Objects ({{allObjects.length}})</h6>
       <ul class="object-list">
         {{#each allObjects}}
           <li>{{value}}</li>
