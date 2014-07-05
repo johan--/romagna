@@ -79,7 +79,7 @@ App.DiagramView = Ember.View.extend(
 
   modelObserver: (->
     d3.select(@get('element')).attr('viewBox', @get('defaultViewBox'))
-    Ember.run.once this, @get('draw')
+    Ember.run.once @, @get('draw')
     Ember.run.next @, @get('_updateDimensions')
   ).observes('model.id')
 
@@ -181,7 +181,7 @@ App.DiagramView = Ember.View.extend(
             .attr('stroke', "#000")
 
         attrLabel.append('text').attr('fill', d.get('attributeLabel.textColor'))
-          .style('font-size', diagram.get('fontInPX'))
+          #.style('font-size', diagram.get('fontInPX'))
           .each((d) ->
             attrs = d.get('attributes.content')
             d.get('attributes').forEach((attr, i) =>
@@ -191,9 +191,9 @@ App.DiagramView = Ember.View.extend(
                           .text(() -> attr.get('value'))
               d.set("textLength", @.getComputedTextLength())
             ))
-            .attr('text-anchor', 'middle')
-            .attr('x', () -> @.getComputedTextLength()/2)
-            .attr('y', diagram.get('lineHeight'))
+            .attr('text-anchor', 'left')
+            .attr('x', -> 3)
+            .attr('y', diagram.get('lineHeight') - 1)
         attrLabel.select('rect').attr('width', (d) -> d.get("textLength") + 10)
         attrLabel.attr('transform', (d) ->
               x = d.get("position.x") + d.get("attributeLabel.offset.x") - d.get('textLength') + 10
@@ -219,20 +219,26 @@ App.DiagramView = Ember.View.extend(
           .text((d) -> d.intersectedObjects(view.get('availableObjects')).get('length'))
             .attr('text-anchor', 'middle')
             .attr('x', 10)
-            .attr('y', 12)
+            .attr('y', -> diagram.get('lineHeight') - 2)
     )
 
   draw: () ->
     diagram = @get 'model'
     svg = d3.select(@get('element'))
+    zoom = d3.behavior.zoom()
+                      .scaleExtent([1, 6])
+                      .on('zoom', Ember.run.bind(@, @_zoom))
 
     diagramGroup = svg.selectAll('g.diagram').data([diagram], (d) -> d.get('id'))
 
     diagramGroup.exit().remove()
-    diagramGroup.enter().append('g').attr('class', 'diagram')
+    diagramGroup.enter().append('g').attr('class', 'diagram').call(zoom)
 
     edges = @drawEdges(diagram, diagramGroup)
     concepts = @drawConcepts(diagram, diagramGroup, edges)
     @drawLabels(diagram, diagramGroup, concepts)
     
+  _zoom: () ->
+    d3.select(@get('element')).select('g.diagram').attr("transform", "translate(#{d3.event.translate})scale(#{d3.event.scale})")
+
 )

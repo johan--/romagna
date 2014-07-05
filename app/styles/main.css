@@ -5992,6 +5992,12 @@ body {
   width: 100%;
   height: 100%;
 }
+#main svg .concept-object-label,
+#application-view svg .concept-object-label,
+#main svg .concept-attribute-label,
+#application-view svg .concept-attribute-label {
+  font-size: 10px;
+}
 #sidebar select {
   width: 100%;
 }
