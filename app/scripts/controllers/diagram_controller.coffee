@@ -1,7 +1,7 @@
 App.DiagramController = Ember.ObjectController.extend(
   needs: ['application', 'sidebar']
-  pastConcepts: []
   parser: Ember.computed.alias 'controllers.application.contextParser'
+  pastConcepts: Ember.computed.alias 'controllers.sidebar.pastConcepts'
   objectLabelDisplay: 'count'
 
   extractDiagram: () ->
@@ -9,7 +9,7 @@ App.DiagramController = Ember.ObjectController.extend(
 
   actions:
     filterByConcept: (concept) ->
-      @pastConcepts.pushObject concept
+      @get('pastConcepts').pushObject concept
       @get('controllers.sidebar').send('advanceInQueue')
 
   availableObjects: ( ->

@@ -8,6 +8,7 @@ App.SidebarController = Ember.Controller.extend(
   objectLabelDisplay: Ember.computed.alias 'controllers.diagram.objectLabelDisplay'
   currentDiagram: null
 
+  pastConcepts: []
   diagramQueue: []
   queueIndex: -1
   currentQueuedDiagram: null
