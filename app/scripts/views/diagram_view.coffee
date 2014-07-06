@@ -9,7 +9,11 @@ App.DiagramView = Ember.View.extend(
   insertedElement: false
   defaultViewBox: "0 0 300 300"
 
-  objectLabelDisplay: Ember.computed.alias('objectLabelDisplay')
+  objectLabelDisplay: Ember.computed.alias('controller.objectLabelDisplay')
+
+  objectLabelDisplayObserver: ( ->
+    Ember.run.next @, @draw
+  ).observes('objectLabelDisplay')
 
   minX: Ember.computed.alias('model.minX')
   minY: Ember.computed.alias('model.minY')
@@ -75,7 +79,7 @@ App.DiagramView = Ember.View.extend(
     @_super()
     @_updateDimensions()
     $(window).on 'resize', Ember.run.bind(@, @_updateDimensions)
-    Ember.run.once this, @get('draw')
+    Ember.run.once @, @get('draw')
     @set('insertedElement', true)
     Ember.run.next @, @get('_updateDimensions')
     Ember.run.next @, @get('_insertOverlay')
@@ -198,7 +202,7 @@ App.DiagramView = Ember.View.extend(
                           .text(() -> attr.get('value'))
                           .attr('text-anchor', 'left')
                           .attr('x',3)
-                          .attr('dy', i * diagram.get("lineHeight"))
+                          .attr('dy', if i then diagram.get("lineHeight") else 0)
                           .attr('text-anchor', ->
                             spanWidths.push @.getComputedTextLength()
                           )
@@ -232,16 +236,40 @@ App.DiagramView = Ember.View.extend(
               y = d.get("position.y") + d.get("objectLabel.offset.y") + diagram.get("fontSize") + 3
               "translate(#{x}, #{y})"
             )
-        objLabel.append('rect')
-                .attr('width', 20)
-                .attr('height', diagram.get('lineHeight'))
-                .attr('fill', (d) -> d.get("objectLabel.bgColor"))
-                .attr('stroke', "#000")
-        objLabel.append('text').attr('fill', (d) -> d.get("objectLabel.textColor"))
-          .text((d) -> d.intersectedObjects(view.get('objectFilter')).get('length'))
-            .attr('text-anchor', 'middle')
-            .attr('x', 10)
-            .attr('y', -> diagram.get('lineHeight') - 2)
+        objLabelRect = objLabel.append('rect')
+                              .attr('width', 20)
+                              .attr('fill', (d) -> d.get("objectLabel.bgColor"))
+                              .attr('stroke', "#000")
+        objLabelText = objLabel.append('text').attr('fill', (d) -> d.get("objectLabel.textColor"))
+        if view.get('objectLabelDisplay') is 'count'
+          objLabelText.text((d) -> d.intersectedObjects(view.get('objectFilter')).get('length'))
+                      .attr('text-anchor', 'middle')
+                      .attr('x', 10)
+                      .attr('y', -> diagram.get('lineHeight') - 2)
+          
+          objLabelRect.attr('height', diagram.get('lineHeight'))
+        else if view.get('objectLabelDisplay') is 'list'
+          spanWidths = []
+          objectLength = 0
+          #objLabelText.selectAll('tspan').data()
+          objLabelText.each (d, i) ->
+            objects = d.intersectedObjects(view.get('objectFilter'))
+            objectLength = objects.get('length')
+            attrs = d.get('attributes.content')
+            objects.forEach (obj, i) =>
+              if i <= 5
+                d3.select(@).append('tspan')
+                  .text( -> obj.get('value'))
+                  .attr('x',3)
+                  .attr('dy',diagram.get("lineHeight"))
+                  .attr('text-anchor', ->
+                    spanWidths.push @.getComputedTextLength()
+                    'left'
+                  )
+           
+          objLabelRect.attr('width', -> d3.max(spanWidths))
+                      .attr('height', d3.min([objectLength * diagram.get('lineHeight'), diagram.get('maxLabelHeight')]))
+          objLabelText.attr('height', d3.min([objectLength * diagram.get('lineHeight'), diagram.get('maxLabelHeight')]))
     )
 
   draw: () ->
