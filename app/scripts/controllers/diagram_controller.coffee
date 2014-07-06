@@ -7,7 +7,7 @@ App.DiagramController = Ember.ObjectController.extend(
   extractDiagram: () ->
     @get('parser').parseSingleDiagram(@get('controllers.application.csxJSON.conceptualSchema'), @get('model.title'))
 
-  availableObjects: ( ->
+  objectFilter: ( ->
     if @get('pastConcepts.length') >= 1
       @get('pastConcepts').reduce((previousValue, item, index) ->
         Ember.EnumerableUtils.intersection(previousValue, item.get('objects'))

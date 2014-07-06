@@ -3,11 +3,13 @@ App.DiagramView = Ember.View.extend(
   tagName: 'svg'
   elementId: 'default-diagram'
   model: Ember.computed.alias('controller.model')
-  availableObjects: Ember.computed.alias('controller.availableObjects')
+  objectFilter: Ember.computed.alias('controller.objectFilter')
   attributeBindings: [ "preserveAspectRatio", "width", "height"]
   preserveAspectRatio: "xMidYMid meet"
   insertedElement: false
   defaultViewBox: "0 0 300 300"
+
+  objectLabelDisplay: Ember.computed.alias('objectLabelDisplay')
 
   minX: Ember.computed.alias('model.minX')
   minY: Ember.computed.alias('model.minY')
@@ -124,7 +126,7 @@ App.DiagramView = Ember.View.extend(
           .attr('stroke', "#000")
           .attr('cy', (d) -> d.get('position.y'))
           .attr('cx', (d) -> d.get('position.x'))
-          .attr('r',  (d) -> if d.intersectedObjects(view.get('availableObjects')).get('length') then 10 else 3
+          .attr('r',  (d) -> if d.intersectedObjects(view.get('objectFilter')).get('length') then 10 else 3
           )
 
     circles.on('click', (d) ->
@@ -185,24 +187,39 @@ App.DiagramView = Ember.View.extend(
             .attr('fill', (d) -> d.get("attributeLabel.bgColor"))
             .attr('stroke', "#000")
 
-        attrLabel.append('text').attr('fill', d.get('attributeLabel.textColor'))
+        spanWidths = []
+        attrLabel.append('text')
+                 .attr('fill', d.get('attributeLabel.textColor'))
           #.style('font-size', diagram.get('fontInPX'))
           .each((d) ->
             attrs = d.get('attributes.content')
             d.get('attributes').forEach((attr, i) =>
               d3.select(@).append('tspan')
-                          .attr('dx', 0)
-                          .attr('dy', i * diagram.get("fontSize"))
                           .text(() -> attr.get('value'))
-              d.set("textLength", @.getComputedTextLength())
+                          .attr('text-anchor', 'left')
+                          .attr('x',3)
+                          .attr('dy', i * diagram.get("lineHeight"))
+                          .attr('text-anchor', ->
+                            spanWidths.push @.getComputedTextLength()
+                          )
+              #d.set("textLength", @.getComputedTextLength())
             ))
             .attr('text-anchor', 'left')
             .attr('x', -> 3)
             .attr('y', diagram.get('lineHeight') - 1)
-        attrLabel.select('rect').attr('width', (d) -> d.get("textLength") + 10)
+        attrLabel.select('rect').attr('width', (d) ->
+          max = d3.max(spanWidths)
+          d.set('textLength', max)
+          max + 10
+        )
         attrLabel.attr('transform', (d) ->
-              x = d.get("position.x") + d.get("attributeLabel.offset.x") - d.get('textLength') + 10
-              y = d.get("position.y") + d.get("attributeLabel.offset.y") - diagram.get("fontSize") - diagram.get("lineHeight")
+              x = d.get("position.x") +
+                  d.get("attributeLabel.offset.x") -
+                  d.get('textLength') + 10
+              y = d.get("position.y") +
+                  d.get("attributeLabel.offset.y") -
+                  diagram.get("fontSize") -
+                  diagram.get("lineHeight")
               "translate(#{x}, #{y})"
             )
 
@@ -221,7 +238,7 @@ App.DiagramView = Ember.View.extend(
                 .attr('fill', (d) -> d.get("objectLabel.bgColor"))
                 .attr('stroke', "#000")
         objLabel.append('text').attr('fill', (d) -> d.get("objectLabel.textColor"))
-          .text((d) -> d.intersectedObjects(view.get('availableObjects')).get('length'))
+          .text((d) -> d.intersectedObjects(view.get('objectFilter')).get('length'))
             .attr('text-anchor', 'middle')
             .attr('x', 10)
             .attr('y', -> diagram.get('lineHeight') - 2)
