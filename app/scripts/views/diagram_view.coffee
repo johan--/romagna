@@ -228,6 +228,7 @@ App.DiagramView = Ember.View.extend(
             )
 
       unless Ember.isEmpty d.get('objects')
+        concept.selectAll('g.concept-object-label').remove()
         objLabel = concept
           .append('g')
             .attr('class', 'concept-object-label')
@@ -242,6 +243,7 @@ App.DiagramView = Ember.View.extend(
                               .attr('stroke', "#000")
         objLabelText = objLabel.append('text').attr('fill', (d) -> d.get("objectLabel.textColor"))
         if view.get('objectLabelDisplay') is 'count'
+          objLabelText.selectAll('tspan').remove()
           objLabelText.text((d) -> d.intersectedObjects(view.get('objectFilter')).get('length'))
                       .attr('text-anchor', 'middle')
                       .attr('x', 10)
@@ -251,25 +253,23 @@ App.DiagramView = Ember.View.extend(
         else if view.get('objectLabelDisplay') is 'list'
           spanWidths = []
           objectLength = 0
-          #objLabelText.selectAll('tspan').data()
-          objLabelText.each (d, i) ->
-            objects = d.intersectedObjects(view.get('objectFilter'))
-            objectLength = objects.get('length')
-            attrs = d.get('attributes.content')
-            objects.forEach (obj, i) =>
-              if i <= 5
-                d3.select(@).append('tspan')
-                  .text( -> obj.get('value'))
-                  .attr('x',3)
-                  .attr('dy',diagram.get("lineHeight"))
-                  .attr('text-anchor', ->
-                    spanWidths.push @.getComputedTextLength()
-                    'left'
-                  )
-           
+          objects = d.intersectedObjects(view.get('objectFilter'))
+          console.log d, objects.get('content')
+          spans = objLabelText.selectAll('tspan').data(objects.get('content'))
+          objectLength = objects.get('length')
+          spans.enter().append('tspan')
+                        .text((obj) -> obj.get('value'))
+                        .attr('x',3)
+                        .attr('dy',(obj, i) -> if i then diagram.get("lineHeight") else 0)
+                        .attr('text-anchor', ->
+                          spanWidths.push @getComputedTextLength()
+                          'left'
+                        )
           objLabelRect.attr('width', -> d3.max(spanWidths))
                       .attr('height', d3.min([objectLength * diagram.get('lineHeight'), diagram.get('maxLabelHeight')]))
           objLabelText.attr('height', d3.min([objectLength * diagram.get('lineHeight'), diagram.get('maxLabelHeight')]))
+                      .attr('y', -> diagram.get('lineHeight') - 2)
+          spans.exit().remove()
     )
 
   draw: () ->
