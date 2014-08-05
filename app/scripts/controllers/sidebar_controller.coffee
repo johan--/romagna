@@ -26,14 +26,18 @@ App.SidebarController = Ember.Controller.extend(
 
   currentQueuedDiagramObserver: (() ->
     console.log "changed current diagram", @get('currentQueuedDiagram.title')
-    unless @get('currentQueuedDiagram') is undefined or
-           @get('currentQueuedDiagram') is null
-      @transitionToRoute('diagram', @get('currentQueuedDiagram'))
+    @transitionToRoute('diagram', @get('currentQueuedDiagram'))
   ).observes('currentQueuedDiagram')
 
   actions:
     parseCSX: (uploadedFile, fileName) ->
       console.log 'pretty neat actually ^_^', fileName
+      @setProperties(
+        diagramQueue: []
+        queueIndex: -1
+        currentQueuedDiagram: null
+      )
+
       @set 'csxFileName', fileName
       @set 'csx', uploadedFile
 

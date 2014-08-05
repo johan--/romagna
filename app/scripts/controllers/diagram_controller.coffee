@@ -2,7 +2,9 @@ App.DiagramController = Ember.ObjectController.extend(
   needs: ['application', 'sidebar']
   parser: Ember.computed.alias 'controllers.application.contextParser'
   pastConcepts: Ember.computed.alias 'controllers.sidebar.pastConcepts'
-  objectLabelDisplay: 'list'
+  diagramQueue: Ember.computed.alias 'controllers.sidebar.diagramQueue'
+  queueIndex: Ember.computed.alias 'controllers.sidebar.queueIndex'
+  objectLabelDisplay: 'count'
 
   extractDiagram: () ->
     @get('parser').parseSingleDiagram(@get('controllers.application.csxJSON.conceptualSchema'), @get('model.title'))

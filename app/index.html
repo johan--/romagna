@@ -39,8 +39,7 @@
       r.parentNode.insertBefore(e,r)}(window,document,'script','ga'));
       ga('create','UA-XXXXX-X');ga('send','pageview');
     </script>
-
-    <!-- build:js(.tmp) scripts/app.js -->
+    <!-- build:js scripts/components.js -->
         <script src="bower_components/underscore/underscore.js"></script>
         <script src="bower_components/jquery/jquery.js"></script>
         <script src="bower_components/x2js/xml2json.js"></script>
@@ -48,7 +47,9 @@
         <script src="bower_components/handlebars/handlebars.runtime.js"></script>
         <script src="bower_components/ember/ember.js"></script>
         <script src="bower_components/ember-data/ember-data.js"></script>
+    <!-- endbuild -->
 
+    <!-- build:js(.tmp) scripts/app.js -->
         <script src="scripts/misc.js"></script>
         <script src="scripts/app.js"></script>
         <script src="scripts/parser.js"></script>
@@ -88,7 +89,7 @@
       <script src="scripts/compiled-templates.js"></script>
     <!-- endbuild -->
 
-        <!-- build:js(.tmp) scripts/vendor/bootstrap.js -->
+        <!-- build:js scripts/vendor/bootstrap.js -->
         <script src="bower_components/bootstrap/js/affix.js"></script>
         <script src="bower_components/bootstrap/js/alert.js"></script>
         <script src="bower_components/bootstrap/js/dropdown.js"></script>

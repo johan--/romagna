@@ -67,7 +67,6 @@ App.DiagramView = Ember.View.extend(
     elem.removeAttr('viewbox')
     elem.attr('width', @get('width'))
     elem.attr('height', @get('height'))
-    console.log @get('element.getBBox.width'), @get('element').getBBox().width
     d3.select(@get('element')).attr('viewBox', @get('viewBox'))
     d3.select(@get('element')).selectAll('rect.overlay')
                               .attr('width', @get('width'))
@@ -134,7 +133,6 @@ App.DiagramView = Ember.View.extend(
           )
 
     circles.on('click', (d) ->
-      console.log 'clicked a circle', d.get('id'), d.get('connectedNodes')
       
       selection = d3.select(@)
 
@@ -164,12 +162,10 @@ App.DiagramView = Ember.View.extend(
       d3.event.preventDefault()
       d3.event.stopImmediatePropagation?()
       d3.event.stopPropagation?()
-      console.log 'trying to drill down, huh'
       view.get('controller').send('filterByConcept', d)
     )
 
     circles.on('mouseover', (d, e) ->
-      console.log 'over a concept'
       view.get('controller').send('focusConcept', d)
     )
 
@@ -251,25 +247,35 @@ App.DiagramView = Ember.View.extend(
           
           objLabelRect.attr('height', diagram.get('lineHeight'))
         else if view.get('objectLabelDisplay') is 'list'
-          spanWidths = []
-          objectLength = 0
           objects = d.intersectedObjects(view.get('objectFilter'))
-          console.log d, objects.get('content')
-          spans = objLabelText.selectAll('tspan').data(objects.get('content'))
           objectLength = objects.get('length')
-          spans.enter().append('tspan')
-                        .text((obj) -> obj.get('value'))
-                        .attr('x',3)
-                        .attr('dy',(obj, i) -> if i then diagram.get("lineHeight") else 0)
-                        .attr('text-anchor', ->
-                          spanWidths.push @getComputedTextLength()
-                          'left'
-                        )
-          objLabelRect.attr('width', -> d3.max(spanWidths))
-                      .attr('height', d3.min([objectLength * diagram.get('lineHeight'), diagram.get('maxLabelHeight')]))
-          objLabelText.attr('height', d3.min([objectLength * diagram.get('lineHeight'), diagram.get('maxLabelHeight')]))
-                      .attr('y', -> diagram.get('lineHeight') - 2)
-          spans.exit().remove()
+          foreignObj = objLabel.append('foreignObject')
+          body = foreignObj.append('xhtml:body')
+          lis = body.append('ul').selectAll('li').data(objects.get('content'))
+          lis.enter().append('li').text((obj) -> obj.get('value'))
+
+          foreignObj.attr('height', d3.min([objectLength * diagram.get('lineHeight'), diagram.get('maxLabelHeight')]))
+          body.attr('height', d3.min([objectLength * diagram.get('lineHeight'), diagram.get('maxLabelHeight')]))
+          foreignObj.attr('width', 200)
+
+          #spanWidths = []
+          #objectLength = 0
+          #objects = d.intersectedObjects(view.get('objectFilter'))
+          #spans = objLabelText.selectAll('tspan').data(objects.get('content'))
+          #objectLength = objects.get('length')
+          #spans.enter().append('tspan')
+                        #.text((obj) -> obj.get('value'))
+                        #.attr('x',3)
+                        #.attr('dy',(obj, i) -> if i then diagram.get("lineHeight") else 0)
+                        #.attr('text-anchor', ->
+                          #spanWidths.push @getComputedTextLength()
+                          #'left'
+                        #)
+          #objLabelRect.attr('width', -> d3.max(spanWidths))
+                      #.attr('height', d3.min([objectLength * diagram.get('lineHeight'), diagram.get('maxLabelHeight')]))
+          #objLabelText.attr('height', d3.min([objectLength * diagram.get('lineHeight'), diagram.get('maxLabelHeight')]))
+                      #.attr('y', -> diagram.get('lineHeight') - 2)
+          #spans.exit().remove()
     )
 
   draw: () ->
@@ -281,7 +287,7 @@ App.DiagramView = Ember.View.extend(
 
     diagramGroup = svg.selectAll('g.diagram').data([diagram], (d) -> d.get('id'))
     diagramGroup.exit().remove()
-    diagramGroup.enter().append('g').attr('class', 'diagram').call(zoom)
+    diagramGroup.enter().append('g').attr('class', 'diagram')
 
     overlay = diagramGroup.append('rect')
     overlay.classed({overlay: true})

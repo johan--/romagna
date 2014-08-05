@@ -15,7 +15,6 @@ App.ApplicationController = Ember.Controller.extend(
     console.log 'changed csx file', @get 'csxFileName'
     dom = @get('domParser').parseFromString(@get('csx'), 'text/xml')
     jsonCSX = @get('xmlParser').xml2json dom
-    console.log jsonCSX
     @send 'parseCSX', jsonCSX
   ).observes('csx')
 

@@ -6002,6 +6002,15 @@ body {
 #application-view svg rect.overlay {
   fill: #fff;
 }
+#main svg ul,
+#application-view svg ul {
+  list-style: none;
+  padding-left: 0;
+  font-size: 0.7em;
+  height: 100%;
+  overflow-y: scroll;
+  border: 1px solid #000;
+}
 #sidebar select {
   width: 100%;
 }

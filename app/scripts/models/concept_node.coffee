@@ -59,10 +59,9 @@ App.ConceptNode = DS.Model.extend(
     , @get('attributes.content').copy())
   ).property('idealNodes')
 
-  intersectedObjects: ( (objectsToBeIntersected, key = 'objects') ->
+  intersectedObjects: (objectsToBeIntersected, key = 'objects') ->
     unless objectsToBeIntersected is null
       Ember.EnumerableUtils.intersection(objectsToBeIntersected, @get(key))
     else return @get(key)
-  )
 
 )
